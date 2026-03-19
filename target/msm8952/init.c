@@ -58,6 +58,7 @@
 #include <secapp_loader.h>
 #include <rpmb.h>
 #include <smem.h>
+#include <regulator.h>
 
 #include "target/display.h"
 
@@ -74,31 +75,31 @@
 #endif
 
 #if PON_VIB_SUPPORT
-#define VIBRATE_TIME    250
+#define VIBRATE_TIME 250
 #endif
 
-#define PMIC_ARB_CHANNEL_NUM    0
-#define PMIC_ARB_OWNER_ID       0
-#define TLMM_VOL_UP_BTN_GPIO    85
+#define PMIC_ARB_CHANNEL_NUM 0
+#define PMIC_ARB_OWNER_ID 0
+#define TLMM_VOL_UP_BTN_GPIO 85
 #define TLMM_VOL_UP_BTN_GPIO_8956 113
 #define TLMM_VOL_UP_BTN_GPIO_8937 91
-#define TLMM_VOL_DOWN_BTN_GPIO    128
+#define TLMM_VOL_DOWN_BTN_GPIO 128
 
-#define FASTBOOT_MODE           0x77665500
-#define RECOVERY_MODE           0x77665502
-#define PON_SOFT_RB_SPARE       0x88F
+#define FASTBOOT_MODE 0x77665500
+#define RECOVERY_MODE 0x77665502
+#define PON_SOFT_RB_SPARE 0x88F
 
-#define EXT4_CMDLINE  " rootfstype=ext4 root=/dev/mmcblk0p"
+#define EXT4_CMDLINE " rootfstype=ext4 root=/dev/mmcblk0p"
 
-#define CE1_INSTANCE            1
-#define CE_EE                   1
-#define CE_FIFO_SIZE            64
-#define CE_READ_PIPE            3
-#define CE_WRITE_PIPE           2
-#define CE_READ_PIPE_LOCK_GRP   0
-#define CE_WRITE_PIPE_LOCK_GRP  0
-#define CE_ARRAY_SIZE           20
-#define SUB_TYPE_SKUT           0x0A
+#define CE1_INSTANCE 1
+#define CE_EE 1
+#define CE_FIFO_SIZE 64
+#define CE_READ_PIPE 3
+#define CE_WRITE_PIPE 2
+#define CE_READ_PIPE_LOCK_GRP 0
+#define CE_WRITE_PIPE_LOCK_GRP 0
+#define CE_ARRAY_SIZE 20
+#define SUB_TYPE_SKUT 0x0A
 #define SMBCHG_USB_RT_STS 0x21310
 #define USBIN_UV_RT_STS BIT(0)
 #define USBIN_UV_RT_STS_PMI632 BIT(2)
@@ -106,13 +107,13 @@
 struct mmc_device *dev;
 
 static uint32_t mmc_pwrctl_base[] =
-	{ MSM_SDC1_BASE, MSM_SDC2_BASE };
+	{MSM_SDC1_BASE, MSM_SDC2_BASE};
 
 static uint32_t mmc_sdhci_base[] =
-	{ MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE };
+	{MSM_SDC1_SDHCI_BASE, MSM_SDC2_SDHCI_BASE};
 
-static uint32_t  mmc_sdc_pwrctl_irq[] =
-	{ SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ };
+static uint32_t mmc_sdc_pwrctl_irq[] =
+	{SDCC1_PWRCTL_IRQ, SDCC2_PWRCTL_IRQ};
 
 static int sdm429_pm660_target(void)
 {
@@ -131,27 +132,27 @@ void target_early_init(void)
 
 static void set_sdc_power_ctrl(uint8_t slot)
 {
-	uint32_t reg = (slot == 1 ? SDC1_HDRV_PULL_CTL: SDC2_HDRV_PULL_CTL);
+	uint32_t reg = (slot == 1 ? SDC1_HDRV_PULL_CTL : SDC2_HDRV_PULL_CTL);
 	/* Drive strength configs for sdc pins */
 	struct tlmm_cfgs sdc1_hdrv_cfg[] =
-	{
-		{ SDC1_CLK_HDRV_CTL_OFF,  TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, reg},
-		{ SDC1_CMD_HDRV_CTL_OFF,  TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, reg},
-		{ SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, reg},
-	};
+		{
+			{SDC1_CLK_HDRV_CTL_OFF, TLMM_CUR_VAL_16MA, TLMM_HDRV_MASK, reg},
+			{SDC1_CMD_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, reg},
+			{SDC1_DATA_HDRV_CTL_OFF, TLMM_CUR_VAL_10MA, TLMM_HDRV_MASK, reg},
+		};
 
 	/* Pull configs for sdc pins */
 	struct tlmm_cfgs sdc1_pull_cfg[] =
-	{
-		{ SDC1_CLK_PULL_CTL_OFF,  TLMM_NO_PULL, TLMM_PULL_MASK, reg},
-		{ SDC1_CMD_PULL_CTL_OFF,  TLMM_PULL_UP, TLMM_PULL_MASK, reg},
-		{ SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, reg},
-	};
+		{
+			{SDC1_CLK_PULL_CTL_OFF, TLMM_NO_PULL, TLMM_PULL_MASK, reg},
+			{SDC1_CMD_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, reg},
+			{SDC1_DATA_PULL_CTL_OFF, TLMM_PULL_UP, TLMM_PULL_MASK, reg},
+		};
 
 	struct tlmm_cfgs sdc1_rclk_cfg[] =
-	{
-		{ SDC1_RCLK_PULL_CTL_OFF, TLMM_PULL_DOWN, TLMM_PULL_MASK, 0},
-	};
+		{
+			{SDC1_RCLK_PULL_CTL_OFF, TLMM_PULL_DOWN, TLMM_PULL_MASK, 0},
+		};
 
 	/* Set the drive strength & pull control values */
 	tlmm_set_hdrive_ctrl(sdc1_hdrv_cfg, ARRAY_SIZE(sdc1_hdrv_cfg));
@@ -167,54 +168,68 @@ void target_sdc_init(void)
 	set_sdc_power_ctrl(1);
 
 	/* Try slot 1*/
-	config.slot          = 1;
-	config.bus_width     = DATA_BUS_WIDTH_8BIT;
-	config.max_clk_rate  = MMC_CLK_192MHZ;
-	config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
-	config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
-	config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
+	config.slot = 1;
+	config.bus_width = DATA_BUS_WIDTH_8BIT;
+	config.max_clk_rate = MMC_CLK_192MHZ;
+	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
+	config.pwrctl_base = mmc_pwrctl_base[config.slot - 1];
+	config.pwr_irq = mmc_sdc_pwrctl_irq[config.slot - 1];
 	config.hs400_support = 1;
 
-	if (!(dev = mmc_init(&config))) {
-	/* Try slot 2 */
+	if (!(dev = mmc_init(&config)))
+	{
+		/* Try slot 2 */
 		set_sdc_power_ctrl(2);
-		config.slot          = 2;
-		config.max_clk_rate  = MMC_CLK_200MHZ;
-		config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
-		config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
-		config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
+		config.slot = 2;
+		config.max_clk_rate = MMC_CLK_200MHZ;
+		config.sdhc_base = mmc_sdhci_base[config.slot - 1];
+		config.pwrctl_base = mmc_pwrctl_base[config.slot - 1];
+		config.pwr_irq = mmc_sdc_pwrctl_irq[config.slot - 1];
 		config.hs400_support = 0;
 
-		if (!(dev = mmc_init(&config))) {
+		if (!(dev = mmc_init(&config)))
+		{
 			dprintf(CRITICAL, "mmc init failed!");
 			ASSERT(0);
 		}
 	}
 }
-
 struct mmc_device *target_get_sd_mmc(void)
 {
 	struct mmc_config_data config;
+	struct mmc_device *mmc;
 
 	if (dev->config.slot == 2)
 		return NULL;
 
+	/* Enable SD card power: L11=VDD 2.95V, L12=VDDIO 2.95V */
+	regulator_enable(REG_LDO11 | REG_LDO12);
+	mdelay(5);
+
 	set_sdc_power_ctrl(2);
 
-	config.slot          = 2;
-	config.bus_width     = DATA_BUS_WIDTH_8BIT;
-	config.max_clk_rate  = MMC_CLK_200MHZ;
-	config.sdhc_base     = mmc_sdhci_base[config.slot - 1];
-	config.pwrctl_base   = mmc_pwrctl_base[config.slot - 1];
-	config.pwr_irq       = mmc_sdc_pwrctl_irq[config.slot - 1];
+	config.slot = 2;
+	config.bus_width = DATA_BUS_WIDTH_4BIT;
+	config.max_clk_rate = MMC_CLK_50MHZ;
+	config.sdhc_base = mmc_sdhci_base[config.slot - 1];
+	config.pwrctl_base = mmc_pwrctl_base[config.slot - 1];
+	config.pwr_irq = mmc_sdc_pwrctl_irq[config.slot - 1];
 	config.hs400_support = 0;
 
-	return mmc_init(&config);
+	mmc = mmc_init(&config);
+	if (!mmc)
+	{
+		/* Power down immediately on failure */
+		regulator_disable(REG_LDO11 | REG_LDO12);
+		return NULL;
+	}
+
+	return mmc;
 }
 
 void *target_mmc_device(void)
 {
-	return (void *) dev;
+	return (void *)dev;
 }
 
 /* Return 1 if vol_up pressed */
@@ -224,16 +239,17 @@ int target_volume_up(void)
 	uint8_t status = 0;
 	uint32_t vol_up_gpio;
 
-	if(platform_is_msm8956())
+	if (platform_is_msm8956())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8956;
-	else if(platform_is_msm8937() || platform_is_msm8917() ||
-		    platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w() || platform_is_sdm439() ||
-		    platform_is_qm215())
+	else if (platform_is_msm8937() || platform_is_msm8917() ||
+			 platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w() || platform_is_sdm439() ||
+			 platform_is_qm215())
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO_8937;
 	else
 		vol_up_gpio = TLMM_VOL_UP_BTN_GPIO;
 
-	if (!first_time) {
+	if (!first_time)
+	{
 		gpio_tlmm_config(vol_up_gpio, 0, GPIO_INPUT, GPIO_PULL_UP, GPIO_2MA, GPIO_ENABLE);
 
 		/* Wait for the gpio config to take effect - debounce time */
@@ -252,15 +268,17 @@ int target_volume_up(void)
 /* Return 1 if vol_down pressed */
 uint32_t target_volume_down(void)
 {
-	static  bool vol_down_key_init = false;
+	static bool vol_down_key_init = false;
 
 	if ((board_hardware_id() == HW_PLATFORM_QRD) &&
-			(board_hardware_subtype() == SUB_TYPE_SKUT)) {
+		(board_hardware_subtype() == SUB_TYPE_SKUT))
+	{
 		uint32_t status = 0;
 
-		if (!vol_down_key_init) {
+		if (!vol_down_key_init)
+		{
 			gpio_tlmm_config(TLMM_VOL_DOWN_BTN_GPIO, 0, GPIO_INPUT, GPIO_PULL_UP,
-				 GPIO_2MA, GPIO_ENABLE);
+							 GPIO_2MA, GPIO_ENABLE);
 			/* Wait for the gpio config to take effect - debounce time */
 			thread_sleep(10);
 			vol_down_key_init = true;
@@ -271,7 +289,9 @@ uint32_t target_volume_down(void)
 
 		/* Active low signal. */
 		return !status;
-	} else {
+	}
+	else
+	{
 		/* Volume down button tied in with PMIC RESIN. */
 		return pm8x41_resin_status();
 	}
@@ -284,28 +304,35 @@ uint32_t target_is_pwrkey_pon_reason(void)
 	uint8_t is_cold_boot;
 	bool usb_present_sts;
 
-	if (pmic == PMIC_IS_PMI632) {
+	if (pmic == PMIC_IS_PMI632)
+	{
 		pon_reason = pmi632_get_pon_reason();
 		is_cold_boot = pm8x41_get_is_cold_boot();
 		usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
-				pm8x41_reg_read(SMBCHG_USB_RT_STS));
-	} else if (pmic == PMIC_IS_PM8916) {
+							pm8x41_reg_read(SMBCHG_USB_RT_STS));
+	}
+	else if (pmic == PMIC_IS_PM8916)
+	{
 		pon_reason = pm8x41_get_pon_reason();
 		is_cold_boot = pm8x41_get_is_cold_boot();
 		usb_present_sts = (pon_reason & USB_CHG);
-	} else if (pmic == PMIC_IS_PM660) {
+	}
+	else if (pmic == PMIC_IS_PM660)
+	{
 		pon_reason = pm660_get_pon_reason();
 		is_cold_boot = pm660_get_is_cold_boot();
 		usb_present_sts = USBIN_PLUGIN_RT_STS &
-				pm8x41_reg_read(SCHG_USB_INT_RT_STS);
-	} else {
+						  pm8x41_reg_read(SCHG_USB_INT_RT_STS);
+	}
+	else
+	{
 		pon_reason = pm8950_get_pon_reason();
 		is_cold_boot = pm8x41_get_is_cold_boot();
 		usb_present_sts = !(USBIN_UV_RT_STS &
-			pm8x41_reg_read(SMBCHG_USB_RT_STS));
+							pm8x41_reg_read(SMBCHG_USB_RT_STS));
 	}
 
-	if (is_cold_boot && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N|PON1))))
+	if (is_cold_boot && ((pon_reason == KPDPWR_N) || (pon_reason == (KPDPWR_N | PON1))))
 		return 1;
 	else if ((pon_reason == PON1) && (!usb_present_sts))
 		return 1;
@@ -321,10 +348,10 @@ static void target_keystatus(void)
 
 	keys_init();
 
-	if(target_volume_down())
+	if (target_volume_down())
 		keys_post_event(KEY_VOLUMEDOWN, 1);
 
-	if(target_volume_up())
+	if (target_volume_up())
 		keys_post_event(KEY_VOLUMEUP, 1);
 }
 
@@ -334,25 +361,24 @@ void target_init(void)
 
 	spmi_init(PMIC_ARB_CHANNEL_NUM, PMIC_ARB_OWNER_ID);
 
-	if(target_is_pmi_enabled())
+	if (target_is_pmi_enabled())
 	{
-		if(platform_is_msm8937() || platform_is_msm8917() ||
-		   platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w() || platform_is_sdm439())
+		if (platform_is_msm8937() || platform_is_msm8917() ||
+			platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w() || platform_is_sdm439())
 		{
 			uint8_t pmi_rev = 0;
 			uint32_t pmi_type = 0;
 
 			pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
-			if(pmi_type == PMIC_IS_PMI8950)
+			if (pmi_type == PMIC_IS_PMI8950)
 			{
 				/* read pmic spare register for rev */
 				pmi_rev = pmi8950_get_pmi_subtype();
-				if(pmi_rev)
-					board_pmi_target_set(1,pmi_rev);
+				if (pmi_rev)
+					board_pmi_target_set(1, pmi_rev);
 			}
 		}
 	}
-
 
 	target_keystatus();
 
@@ -364,14 +390,13 @@ void target_init(void)
 	}
 
 #if LONG_PRESS_POWER_ON
-	if(target_is_pmi_enabled())
+	if (target_is_pmi_enabled())
 		shutdown_detect();
 #endif
 
 #if PON_VIB_SUPPORT
 	/* turn on vibrator to indicate that phone is booting up to end user */
-	if(target_is_pmi_enabled() || platform_is_qm215()
-			|| platform_is_sdm429w() || platform_is_sda429w() || sdm429_pm660_target())
+	if (target_is_pmi_enabled() || platform_is_qm215() || platform_is_sdm429w() || platform_is_sda429w() || sdm429_pm660_target())
 		vib_timed_turn_on(VIBRATE_TIME);
 #endif
 
@@ -404,7 +429,7 @@ void target_init(void)
 
 		/*
 		 * Load the sec app for first time
-	 	*/
+		 */
 		if (load_sec_app() < 0)
 		{
 			dprintf(CRITICAL, "Failed to load App for verified\n");
@@ -417,19 +442,19 @@ void target_init(void)
 #endif
 
 #if ENABLE_WBC
-	if(sdm429_pm660_target())
+	if (sdm429_pm660_target())
 	{
 		/* Start Weak Battery Charging */
 		weak_battery_charging();
 	}
 #endif
-
 }
 
 void target_serialno(unsigned char *buf)
 {
 	uint32_t serialno;
-	if (target_is_emmc_boot()) {
+	if (target_is_emmc_boot())
+	{
 		serialno = mmc_get_psn();
 		snprintf((char *)buf, 13, "%x", serialno);
 	}
@@ -453,7 +478,8 @@ void target_baseband_detect(struct board_data *board)
 
 	platform = board->platform;
 
-	switch(platform) {
+	switch (platform)
+	{
 	case MSM8952:
 	case MSM8956:
 	case MSM8976:
@@ -481,7 +507,7 @@ void target_baseband_detect(struct board_data *board)
 		board->baseband = BASEBAND_APQ;
 		break;
 	default:
-		dprintf(CRITICAL, "Platform type: %u is not supported\n",platform);
+		dprintf(CRITICAL, "Platform type: %u is not supported\n", platform);
 		ASSERT(0);
 	};
 }
@@ -511,47 +537,56 @@ unsigned target_pause_for_battery_charge(void)
 	uint32_t pmic = target_get_pmic();
 	uint8_t pon_reason;
 	uint8_t is_cold_boot;
-	bool usb_present_sts = 1;	/* don't care by default */
+	bool usb_present_sts = 1; /* don't care by default */
 
-	if (pmic == PMIC_IS_PM660) {
+	if (pmic == PMIC_IS_PM660)
+	{
 		pon_reason = pm660_get_pon_reason();
 		is_cold_boot = pm660_get_is_cold_boot();
 	}
-	else {
+	else
+	{
 		pon_reason = pm8x41_get_pon_reason();
 		is_cold_boot = pm8x41_get_is_cold_boot();
 	}
 
 	if (target_is_pmi_enabled())
 	{
-		if (pmic == PMIC_IS_PMI632) {
+		if (pmic == PMIC_IS_PMI632)
+		{
 			usb_present_sts = !(USBIN_UV_RT_STS_PMI632 &
-				pm8x41_reg_read(SMBCHG_USB_RT_STS));
-		} else {
+								pm8x41_reg_read(SMBCHG_USB_RT_STS));
+		}
+		else
+		{
 			usb_present_sts = (!(USBIN_UV_RT_STS &
-				pm8x41_reg_read(SMBCHG_USB_RT_STS)));
+								 pm8x41_reg_read(SMBCHG_USB_RT_STS)));
 		}
 	}
-	else {
-		if (pmic == PMIC_IS_PM8916) {
+	else
+	{
+		if (pmic == PMIC_IS_PM8916)
+		{
 			usb_present_sts = (pon_reason & USB_CHG);
-		} else if (pmic == PMIC_IS_PM660) {
+		}
+		else if (pmic == PMIC_IS_PM660)
+		{
 			usb_present_sts = USBIN_PLUGIN_RT_STS &
-				pm8x41_reg_read(SCHG_USB_INT_RT_STS);
+							  pm8x41_reg_read(SCHG_USB_INT_RT_STS);
 		}
 	}
 
 	dprintf(INFO, "%s : pon_reason is:0x%x cold_boot:%d usb_sts:%d\n", __func__,
-		pon_reason, is_cold_boot, usb_present_sts);
+			pon_reason, is_cold_boot, usb_present_sts);
 	/* In case of fastboot reboot,adb reboot or if we see the power key
-	* pressed we do not want go into charger mode.
-	* fastboot reboot is warm boot with PON hard reset bit not set
-	* adb reboot is a cold boot with PON hard reset bit set
-	*/
+	 * pressed we do not want go into charger mode.
+	 * fastboot reboot is warm boot with PON hard reset bit not set
+	 * adb reboot is a cold boot with PON hard reset bit set
+	 */
 	if (is_cold_boot &&
-			(!(pon_reason & HARD_RST)) &&
-			(!(pon_reason & KPDPWR_N)) &&
-			usb_present_sts)
+		(!(pon_reason & HARD_RST)) &&
+		(!(pon_reason & KPDPWR_N)) &&
+		usb_present_sts)
 		return 1;
 	else
 		return 0;
@@ -559,8 +594,10 @@ unsigned target_pause_for_battery_charge(void)
 
 void target_uninit(void)
 {
+	if (dev && dev->config.slot != 2)
+		regulator_disable(REG_LDO11 | REG_LDO12);
 #if PON_VIB_SUPPORT
-	if(target_is_pmi_enabled() || platform_is_sdm429w() || platform_is_sda429w() || sdm429_pm660_target())
+	if (target_is_pmi_enabled() || platform_is_sdm429w() || platform_is_sda429w() || sdm429_pm660_target())
 		turn_off_vib_early();
 #endif
 	mmc_put_card_to_sleep(dev);
@@ -627,8 +664,10 @@ static uint8_t splash_override;
 int target_cont_splash_screen(void)
 {
 	uint8_t splash_screen = 0;
-	if (!splash_override) {
-		switch (board_hardware_id()) {
+	if (!splash_override)
+	{
+		switch (board_hardware_id())
+		{
 		case HW_PLATFORM_MTP:
 		case HW_PLATFORM_SURF:
 		case HW_PLATFORM_RCM:
@@ -646,22 +685,22 @@ int target_cont_splash_screen(void)
 
 void target_force_cont_splash_disable(uint8_t override)
 {
-        splash_override = override;
+	splash_override = override;
 }
 
 uint8_t target_panel_auto_detect_enabled(void)
 {
 	uint8_t ret = 0;
 
-	switch(board_hardware_id())
+	switch (board_hardware_id())
 	{
-		case HW_PLATFORM_QRD:
-			ret = platform_is_msm8956() ? 1 : 0;
-			break;
-		case HW_PLATFORM_SURF:
-		case HW_PLATFORM_MTP:
-		default:
-			ret = 0;
+	case HW_PLATFORM_QRD:
+		ret = platform_is_msm8956() ? 1 : 0;
+		break;
+	case HW_PLATFORM_SURF:
+	case HW_PLATFORM_MTP:
+	default:
+		ret = 0;
 	}
 	return ret;
 }
@@ -669,7 +708,8 @@ uint8_t target_panel_auto_detect_enabled(void)
 /* Do any target specific intialization needed before entering fastboot mode */
 void target_fastboot_init(void)
 {
-	if (target_is_ssd_enabled()) {
+	if (target_is_ssd_enabled())
+	{
 		clock_ce_enable(CE1_INSTANCE);
 		target_load_ssd_keystore();
 	}
@@ -678,7 +718,7 @@ void target_fastboot_init(void)
 void target_load_ssd_keystore(void)
 {
 	uint64_t ptn;
-	int      index;
+	int index;
 	uint64_t size;
 	uint32_t *buffer = NULL;
 
@@ -688,24 +728,28 @@ void target_load_ssd_keystore(void)
 	index = partition_get_index("ssd");
 
 	ptn = partition_get_offset(index);
-	if (ptn == 0){
+	if (ptn == 0)
+	{
 		dprintf(CRITICAL, "Error: ssd partition not found\n");
 		return;
 	}
 
 	size = partition_get_size(index);
-	if (size == 0) {
+	if (size == 0)
+	{
 		dprintf(CRITICAL, "Error: invalid ssd partition size\n");
 		return;
 	}
 
 	buffer = memalign(CACHE_LINE, ROUNDUP(size, CACHE_LINE));
-	if (!buffer) {
+	if (!buffer)
+	{
 		dprintf(CRITICAL, "Error: allocating memory for ssd buffer\n");
 		return;
 	}
 
-	if (mmc_read(ptn, buffer, size)) {
+	if (mmc_read(ptn, buffer, size))
+	{
 		dprintf(CRITICAL, "Error: cannot read data\n");
 		free(buffer);
 		return;
@@ -728,27 +772,27 @@ void target_crypto_init_params(void)
 	struct crypto_init_params ce_params;
 
 	/* Set up base addresses and instance. */
-	ce_params.crypto_instance  = CE1_INSTANCE;
-	ce_params.crypto_base      = MSM_CE1_BASE;
-	ce_params.bam_base         = MSM_CE1_BAM_BASE;
+	ce_params.crypto_instance = CE1_INSTANCE;
+	ce_params.crypto_base = MSM_CE1_BASE;
+	ce_params.bam_base = MSM_CE1_BAM_BASE;
 
 	/* Set up BAM config. */
-	ce_params.bam_ee               = CE_EE;
-	ce_params.pipes.read_pipe      = CE_READ_PIPE;
-	ce_params.pipes.write_pipe     = CE_WRITE_PIPE;
-	ce_params.pipes.read_pipe_grp  = CE_READ_PIPE_LOCK_GRP;
+	ce_params.bam_ee = CE_EE;
+	ce_params.pipes.read_pipe = CE_READ_PIPE;
+	ce_params.pipes.write_pipe = CE_WRITE_PIPE;
+	ce_params.pipes.read_pipe_grp = CE_READ_PIPE_LOCK_GRP;
 	ce_params.pipes.write_pipe_grp = CE_WRITE_PIPE_LOCK_GRP;
 
 	/* Assign buffer sizes. */
-	ce_params.num_ce           = CE_ARRAY_SIZE;
-	ce_params.read_fifo_size   = CE_FIFO_SIZE;
-	ce_params.write_fifo_size  = CE_FIFO_SIZE;
+	ce_params.num_ce = CE_ARRAY_SIZE;
+	ce_params.read_fifo_size = CE_FIFO_SIZE;
+	ce_params.write_fifo_size = CE_FIFO_SIZE;
 
 	/* BAM is initialized by TZ for this platform.
 	 * Do not do it again as the initialization address space
 	 * is locked.
 	 */
-	ce_params.do_bam_init      = 0;
+	ce_params.do_bam_init = 0;
 
 	crypto_init_params(&ce_params);
 }
@@ -756,8 +800,8 @@ void target_crypto_init_params(void)
 bool target_is_pmi_enabled(void)
 {
 	if (platform_is_qm215() || platform_is_sdm429w() || platform_is_sda429w() || sdm429_pm660_target() ||
-			(platform_is_msm8917() && (board_hardware_subtype() ==
-			HW_PLATFORM_SUBTYPE_SAP_NOPMI)))
+		(platform_is_msm8917() && (board_hardware_subtype() ==
+								   HW_PLATFORM_SUBTYPE_SAP_NOPMI)))
 		return 0;
 	else
 		return 1;
@@ -770,29 +814,33 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 	uint32_t buflen;
 	int ret = -1;
 
-	if (!cmdline || !part ) {
+	if (!cmdline || !part)
+	{
 		dprintf(CRITICAL, "WARN: Invalid input param\n");
 		return -1;
 	}
 
 	if (!strstr(cmdline, "root=/dev/ram")) /* This check is to handle kdev boot */
 	{
-		if (target_is_emmc_boot()) {
-			buflen = strlen(EXT4_CMDLINE) + sizeof(int) +1;
+		if (target_is_emmc_boot())
+		{
+			buflen = strlen(EXT4_CMDLINE) + sizeof(int) + 1;
 			*buf = (char *)malloc(buflen);
-			if(!(*buf)) {
-				dprintf(CRITICAL,"Unable to allocate memory for boot params\n");
+			if (!(*buf))
+			{
+				dprintf(CRITICAL, "Unable to allocate memory for boot params\n");
 				return -1;
 			}
 			/* Below is for emmc boot */
 			system_ptn_index = partition_get_index(part) + 1; /* Adding +1 as offsets for eMMC start at 1 and NAND at 0 */
-			if (system_ptn_index < 0) {
+			if (system_ptn_index < 0)
+			{
 				dprintf(CRITICAL,
 						"WARN: Cannot get partition index for %s\n", part);
 				free(*buf);
 				return -1;
 			}
-			snprintf(*buf, buflen, EXT4_CMDLINE"%d", system_ptn_index);
+			snprintf(*buf, buflen, EXT4_CMDLINE "%d", system_ptn_index);
 			ret = 0;
 		}
 	}
@@ -805,14 +853,18 @@ uint32_t target_get_pmic(void)
 {
 	uint32_t pmi_type = 0;
 
-	if (target_is_pmi_enabled()) {
+	if (target_is_pmi_enabled())
+	{
 		pmi_type = board_pmic_target(1) & PMIC_TYPE_MASK;
 		if (pmi_type == PMIC_IS_PMI632)
 			return PMIC_IS_PMI632;
 		else
 			return PMIC_IS_PMI8950;
-	} else {
-		if (platform_is_qm215() || platform_is_sdm429w() || platform_is_sda429w() || sdm429_pm660_target()) {
+	}
+	else
+	{
+		if (platform_is_qm215() || platform_is_sdm429w() || platform_is_sda429w() || sdm429_pm660_target())
+		{
 			pmi_type = board_pmic_target(0) & PMIC_TYPE_MASK;
 			return pmi_type;
 		}
@@ -825,14 +877,22 @@ void pmic_reset_configure(uint8_t reset_type)
 	uint32_t pmi_type;
 
 	pmi_type = target_get_pmic();
-	if (pmi_type == PMIC_IS_PMI632) {
+	if (pmi_type == PMIC_IS_PMI632)
+	{
 		pmi632_reset_configure(reset_type);
-	} else if (pmi_type == PMIC_IS_PM660) {
+	}
+	else if (pmi_type == PMIC_IS_PM660)
+	{
 		pm8x41_reset_configure(reset_type);
-	} else {
-		if(target_is_pmi_enabled()) {
+	}
+	else
+	{
+		if (target_is_pmi_enabled())
+		{
 			pm8994_reset_configure(reset_type);
-		} else {
+		}
+		else
+		{
 			pm8x41_reset_configure(reset_type);
 		}
 	}
