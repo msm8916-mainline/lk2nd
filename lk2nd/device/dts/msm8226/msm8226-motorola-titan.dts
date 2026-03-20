@@ -33,7 +33,7 @@
 
 		key-volume-down {
 			lk2nd,code = <KEY_VOLUMEDOWN>;
-			gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			gpios = <&tlmm 107 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
