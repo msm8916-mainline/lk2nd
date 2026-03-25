@@ -145,6 +145,7 @@
 - Samsung Galaxy A6+
 - Samsung Galaxy J8 LTE
 - Samsung Tab A2 XL WIFI
+- Vsmart Joy 3 (casuarina) (requires flashing [minimal DTBO](#minimal-dtb-overlay)) 
 - Xiaomi Mi A1 (tissot)
 - Xiaomi Mi A2 Lite (daisy)
 - Xiaomi Mi Max 2 (oxygen)
