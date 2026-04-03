@@ -20,10 +20,21 @@
 		lk2nd,match-panel;
 
 		panel {
-			compatible = "vsmart,casuarina-ft8006p-hlt", "lk2nd,panel";
+			compatible = "vsmart,casuarina-panel", "lk2nd,panel";
 
 			qcom,mdss_dsi_ft8006p_hlt_1600_video {
 				compatible = "vsmart,casuarina-ft8006p-hlt";
+				touchscreen-compatible = "focaltech,ft8201";
+			};
+
+			qcom,mdss_dsi_ft8006p_truly_1600_video {
+				compatible = "vsmart,casuarina-ft8006p-truly";
+				touchscreen-compatible = "focaltech,ft8201";
+			};
+
+			qcom,mdss_dsi_icnl9911s_byd_1600_video {
+				compatible = "vsmart,casuarina-icnl9911s-byd";
+				/* No touchscreen driver available yet */
 			};
 		};
 	};
