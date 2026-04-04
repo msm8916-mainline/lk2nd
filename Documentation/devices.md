@@ -1,6 +1,7 @@
 # Supported devices
 
 ### lk2nd-msm8916
+- 10or G (g)
 - Acer Iconia Talk S A1-724 (quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-mtp-smb1360.dts`)
 - Alcatel OneTouch Idol 3 (4.7) - 6039*
 - Alcatel OneTouch Idol 3 (5.5) - 6045*
@@ -9,6 +10,7 @@
 - Asus Zenfone 2 Laser (1080p) - Z00T
 - Asus Zenfone 2 Laser ZE500KL - Z00E
 - Asus Zenfone Max ZC550KL (2016) - Z010D
+- Asus ZenPad 8.0 (Z380KL) - P024
 - BQ Aquaris M5 - piccolo
 - BQ Aquaris X5 - paella, picmt
 - DragonBoard 410c - apq8016-sbc
@@ -34,14 +36,14 @@
 - Panasonic ELUGA U2
 - Samsung Galaxy A3 (2015) - SM-A300F, SM-A300FU, SM-A300YZ
 - Samsung Galaxy A5 (Duos) (2015) - SM-A5000, SM-A500F, SM-A500FU, SM-A500H, SM-A500YZ
-- Samsung Galaxy A7 (2015) - SM-A700YD
+- Samsung Galaxy A7 (2015) - SM-A700H, SM-A700YD
 - Samsung Galaxy Ace 4 - SM-G357FZ (quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
 - Samsung Galaxy Core Max - SM-G5108Q (quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
-- Samsung Galaxy Core Prime LTE - SM-G360F, SM-G360G, SM-G360T, SM-G360V (rossaltezt is quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
+- Samsung Galaxy Core Prime LTE - SM-G360F, SM-G360G, SM-G360M, SM-G360T, SM-G360V (rossaltezt is quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
 - Samsung Galaxy E5 - SM-E500F, SM-E500H
-- Samsung Galaxy E7 - SM-E7000, SM-E700F
-- Samsung Galaxy Grand Max - SM-G720AX
-- Samsung Galaxy Grand Prime - SM-G530FZ, SM-G530H, SM-G530R4, SM-G530W, SM-G530Y (G530Y is quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
+- Samsung Galaxy E7 - SM-E7000, SM-E700F, SM-E700H
+- Samsung Galaxy Grand Max - SM-G7200, SM-G720AX
+- Samsung Galaxy Grand Prime - SM-G530BT, SM-G530FZ, SM-G530H, SM-G530M, SM-G530R4, SM-G530W, SM-G530Y (G530Y is quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-samsung.dts`)
 - Samsung Galaxy J3 (2016) - SM-J3109, SM-J320YZ
 - Samsung Galaxy J3 Pro - SM-J3110, SM-J3119
 - Samsung Galaxy J5 (2015) - SM-J5007, SM-J5008, SM-J500F, SM-J500FN, SM-J500G, SM-J500H, SM-J500M
@@ -53,6 +55,7 @@
 - Samsung Galaxy Tab A 8.0 (2015) - SM-T350, SM-T355, SM-T355Y, SM-T357W
 - Samsung Galaxy Tab A 9.7 (2015) - SM-T550, SM-T555
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
+- Vivo Y13L (2015) - pd1304cl
 - Vivo Y21L
 - Vivo Y31 (2015) - pd1505
 - Vivo Y51L (2015) - pd1510
@@ -84,15 +87,16 @@
 
 - Alcatel Idol 4 (6055*)
 - BQ X5 Plus (Longcheer L9360)
-- Fossil Gen 6 (hoki)
-- HMD Global Nokia 4.2 (panther)
+- Fossil Gen 6 (hoki) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- General Mobile GM 5 Plus (shamrock)
+- HMD Global Nokia 4.2 (panther) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - HMD Global Nokia 5 (nd1)
 - HMD Global Nokia 6 (ple)
 - Huawei Honor 7C (aum-l41) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-huawei-aum.dts`)
 - Huawei MediaPad T3 10 (ags- l09/l03/w09) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8917-huawei-agassi.dts`)
 - Leeco s2
 - Lenovo K5 Play (l38011)
-- Lenovo Tab M10 HD (TB-X505X)
+- Lenovo Tab M10 HD (TB-X505X) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Motorola Moto E5 (nora)
 - Motorola Moto E5 Plus (hannah) (MSM8917)
 - Motorola Moto E5 Plus (hannah) (MSM8937)
@@ -106,12 +110,13 @@
 - Redmi 4A (rolex)
 - Redmi 4X (santoni)
 - Redmi 5A (riva)
-- Redmi 7A (pine)
-- Redmi 8 (olive) / 8A (olivelite) / 8A Dual/Pro (olivewood)
+- Redmi 7A (pine) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- Redmi 8 (olive) / 8A (olivelite) / 8A Dual/Pro (olivewood) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Redmi GO (tiare)
 - Redmi Note 3 Pro (kenzo)
 - Redmi Note 5A (ugglite)
 - Redmi Note 5A Prime (ugg)
+- Samsung Galaxy Tab A 8.0 2019 (gtowifi)
 - Sony Xperia X
 - Sony Xperia X Compact
 - Wileyfox Swift 2
@@ -127,15 +132,20 @@
 - Lenovo P2 (kuntao)
 - Lenovo ThinkSmart View (cd-18781y) (quirky - see comments in `lk2nd/device/dts/msm8953/apq8053-lenovo-cd-18781y.dts`)
 - Meizu M6 Note (m1721)
+- Meizu M15 (m1871)
 - Motorola Moto G5 Plus (potter)
 - Motorola Moto G5s Plus (sanders)
 - Motorola Moto G6 (ali)
-- Motorola Moto G7 Power (ocean)
+- Motorola Moto G7 (river) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- Motorola Moto G7 Power (ocean) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- Motorola Moto G7 Play (channel) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Motorola One (deen)
 - OPPO R9s/R9sk (R9s/R9sk) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-oppo-r9s.dts`)
+- OPPO Realme 2 (RMX1805/RMX1809) / C1 (RMX1811) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Samsung Galaxy A6+
 - Samsung Galaxy J8 LTE
 - Samsung Tab A2 XL WIFI
+- Vsmart Joy 3 (casuarina) (requires flashing [minimal DTBO](#minimal-dtb-overlay)) 
 - Xiaomi Mi A1 (tissot)
 - Xiaomi Mi A2 Lite (daisy)
 - Xiaomi Mi Max 2 (oxygen)
@@ -143,7 +153,7 @@
 - Xiaomi Redmi 5 (rosy)
 - Xiaomi Redmi 5 Plus (vince)
 - Xiaomi Redmi 6 Pro (sakura)
-- Xiaomi Redmi 7 (onclite)
+- Xiaomi Redmi 7 (onclite) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Xiaomi Redmi Note 4X Snapdragon (mido)
 - Xiaomi Redmi S2/Y2 (ysl)
 
@@ -156,9 +166,11 @@
 - Motorola Moto X 2014 - victara
 - OnePlus One - bacon <!--(use `lk2nd-msm8974-appended-dtb.img`)-->
 - Samsung Galaxy Note 3 - SM-N9005, SM-N900T
+- Samsung Galaxy Note 10.1 2014 (LTE) - SM-P605 (lt03lte)
 - Samsung Galaxy S5 - SM-G900F, SM-G900T
 - Samsung Galaxy S5 China LTE (Duos) - SM-G9006V/W, SM-G9008V/W, SM-G9009W
-- Sony Xperia Z3 - leo
+- Sony Xperia Z3 - leo (quirky - see comment in `lk2nd/device/dts/msm8974/msm8974pro-sony-leo.dts`)
+- Sony Xperia Z3 Compact - aries (quirky - see comment in `lk2nd/device/dts/msm8974/msm8974pro-sony-aries.dts`)
 
 ### lk2nd-msm8226
 - ASUS ZenWatch 2 - sparrow
@@ -189,6 +201,7 @@
 - Xiaomi Mi 5 - gemini
 - Xiaomi Mi 5s - capricorn
 - Xiaomi Mi 5s Plus - natrium
+- Xiaomi Mi Note 2 - scorpio
 - ZTE Axon 7
 
 ### lk2nd-msm8960
@@ -201,6 +214,21 @@
 ### lk2nd-msm8610
 
 - Huawei C8816
+
+### lk2nd-msm8660
+- HP TouchPad (Wi-Fi) (topaz)
+
+## Minimal DTB Overlay
+
+The newest devices supported by lk2nd (particularly SDM429/SDM439/SDM632 ones)
+require the installation of a custom, minimal DTBO partition image. Otherwise,
+the boot loader would try to patch lk2nd's device trees with the stock overlay
+which references all the nodes that don't exist anymore, and refuses to proceed.
+
+You can currently find such overlays for supported devices in the [dtbo-lk2nd]
+project.
+
+[dtbo-lk2nd]: https://github.com/barni2000/dtbo-lk2nd/releases
 
 ## Porting new devices
 

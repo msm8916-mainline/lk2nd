@@ -49,6 +49,7 @@
 		lk2nd,match-panel;
 
 		lk2nd,dtb-files = "msm8905-nokia-argon";
+		lk2nd,menu-key-strings = "Up and down keys", "Power key";
 
 		panel {
 			compatible = "nokia,argon-panel";

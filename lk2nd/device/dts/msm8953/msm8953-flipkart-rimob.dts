@@ -10,7 +10,7 @@
 
 &lk2nd {
 	model = "Billion Capture+";
-	compatible = "billion,rimob";
+	compatible = "flipkart,rimob";
 
-	lk2nd,dtb-files = "msm8953-billion-rimob";
+	lk2nd,dtb-files = "msm8953-flipkart-rimob";
 };

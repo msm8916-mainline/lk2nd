@@ -8,6 +8,7 @@ QCDTBS += \
 	$(LOCAL_DIR)/apq8016-samsung.dtb \
 	$(LOCAL_DIR)/apq8016-sbc.dtb \
 	$(LOCAL_DIR)/msm8216-samsung.dtb \
+	$(LOCAL_DIR)/msm8239-samsung.dtb \
 	$(LOCAL_DIR)/msm8916-512mb-mtp.dtb \
 	$(LOCAL_DIR)/msm8916-512mb-qrd-skuh.dtb \
 	$(LOCAL_DIR)/msm8916-asus-z00e.dtb \
@@ -28,12 +29,13 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-qrd-7+12.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-8.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-9.dtb \
+	$(LOCAL_DIR)/msm8916-qrd-skui.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-skut1.dtb \
 	$(LOCAL_DIR)/msm8916-samsung.dtb \
+	$(LOCAL_DIR)/msm8916-vivo-pd1304cl.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-pd1505.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-pd1510.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-y21l.dtb \
-	$(LOCAL_DIR)/msm8916-wiko-chuppito.dtb \
 	$(LOCAL_DIR)/msm8929-samsung.dtb \
 	$(LOCAL_DIR)/msm8929-qrd-wt82918hd.dtb \
 	$(LOCAL_DIR)/msm8939-asus-z00t.dtb \

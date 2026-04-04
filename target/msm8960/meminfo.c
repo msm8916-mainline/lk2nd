@@ -37,9 +37,15 @@
 #include <platform/iomap.h>
 #include <dev_tree.h>
 
+/* SMEM region that must be reserved */
+#define SMEM_START MSM_SHARED_BASE
+#define SMEM_SIZE  0x00200000
+#define SMEM_END   (SMEM_START + SMEM_SIZE)
+
 /* Funtion to add the ram partition entries into device tree.
  * The function assumes that all the entire fixed memory regions should
  * be listed in the first bank of the passed in ddr regions.
+ * SMEM region (0x80000000-0x801FFFFF) is excluded from usable memory.
  */
 uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 {
@@ -47,6 +53,7 @@ uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 	unsigned int index;
 	int ret = 0;
 	uint32_t len = 0;
+	uint64_t mem_start, mem_end;
 
 	/* Make sure RAM partition table is initialized */
 	ASSERT(smem_ram_ptable_init_v1());
@@ -58,22 +65,70 @@ uint32_t target_dev_tree_mem(void *fdt, uint32_t memory_node_offset)
 	{
 		smem_get_ram_ptable_entry(&ptn_entry, index);
 
-		if (smem_ram_ptn_is_ddr(&ptn_entry))
-		{
+		if (!smem_ram_ptn_is_ddr(&ptn_entry))
+			continue;
 
-			/* Pass along all other usable memory regions to Linux */
-			ret = dev_tree_add_mem_info(fdt,
-							memory_node_offset,
-							ptn_entry.start,
-							ptn_entry.size);
+		mem_start = ptn_entry.start;
+		mem_end = ptn_entry.start + ptn_entry.size;
+
+		if (mem_end <= SMEM_START || mem_start >= SMEM_END)
+		{
+			dprintf(SPEW, "Adding memory outside SMEM: start=0x%llx size=0x%llx\n",
+				ptn_entry.start, ptn_entry.size);
+
+			ret = dev_tree_add_mem_info(fdt, memory_node_offset,
+						    ptn_entry.start, ptn_entry.size);
 
 			if (ret)
 			{
 				dprintf(CRITICAL,
-					"Failed to add secondary banks memory addresses\n");
+					"Failed to add memory outside SMEM (ret=%d)\n", ret);
 				goto target_dev_tree_mem_err;
 			}
+		}
+		else if (mem_start >= SMEM_START && mem_end <= SMEM_END)
+		{
+			dprintf(SPEW, "Skipping SMEM only region: start=0x%llx size=0x%llx\n",
+				ptn_entry.start, ptn_entry.size);
+		}
+		else
+		{
+			if (mem_start < SMEM_START)
+			{
+				uint64_t before_size = SMEM_START - mem_start;
+				dprintf(SPEW,
+					"Adding memory before SMEM: start=0x%llx size=0x%llx\n",
+					mem_start, before_size);
 
+				ret = dev_tree_add_mem_info(fdt, memory_node_offset,
+							    mem_start, before_size);
+
+				if (ret)
+				{
+					dprintf(CRITICAL,
+						"Failed to add memory before SMEM (ret=%d)\n",
+						ret);
+					goto target_dev_tree_mem_err;
+				}
+			}
+			if (mem_end > SMEM_END)
+			{
+				uint64_t after_size = mem_end - SMEM_END;
+				dprintf(SPEW,
+					"Adding memory after SMEM: start=0x%llx size=0x%llx\n",
+					(uint64_t)SMEM_END, after_size);
+
+				ret = dev_tree_add_mem_info(fdt, memory_node_offset,
+							    SMEM_END, after_size);
+
+				if (ret)
+				{
+					dprintf(CRITICAL,
+						"Failed to add memory after SMEM (ret=%d)\n",
+						ret);
+					goto target_dev_tree_mem_err;
+				}
+			}
 		}
 	}
 

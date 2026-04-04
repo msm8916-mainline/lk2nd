@@ -41,7 +41,7 @@
 		compatible = "samsung,matissevewifi";
 		lk2nd,match-bootloader = "T533*";
 
-		lk2nd,dtb-files = "msm8916-samsung-matissevewifi";
+		lk2nd,dtb-files = "apq8016-samsung-matissevewifi";
 
 		qcom,msm-id = <QCOM_ID_APQ8016 0>;
 		qcom,board-id = <0xF708FF01 2>;
@@ -54,7 +54,7 @@
 		compatible = "samsung,gtelwifiue";
 		lk2nd,match-bootloader = "T560*";
 
-		lk2nd,dtb-files = "msm8916-samsung-gtelwifiue";
+		lk2nd,dtb-files = "apq8016-samsung-gtelwifiue";
 
 		qcom,msm-id = <QCOM_ID_APQ8016 0>;
 		qcom,board-id = <0xF708FF01 1>;

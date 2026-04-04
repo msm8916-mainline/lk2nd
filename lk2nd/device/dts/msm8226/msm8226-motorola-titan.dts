@@ -24,6 +24,16 @@
 &lk2nd {
 	model = "Motorola Moto G 2014";
 	compatible = "motorola,titan";
+	lk2nd,match-device = "titan";
 
-	// FIXME: lk2nd,dtb-files = "msm8226-motorola-titan";
+	lk2nd,dtb-files = "msm8226-motorola-titan";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		key-volume-down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 107 GPIO_ACTIVE_LOW>;
+		};
+	};
 };
