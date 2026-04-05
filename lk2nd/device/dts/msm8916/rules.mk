@@ -34,6 +34,7 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-samsung.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-pd1304cl.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-pd1505.dtb \
+	$(LOCAL_DIR)/msm8916-vivo-pd1505f.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-pd1510.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-y21l.dtb \
 	$(LOCAL_DIR)/msm8929-samsung.dtb \
