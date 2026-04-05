@@ -58,6 +58,7 @@
 - Vivo Y13L (2015) - pd1304cl
 - Vivo Y21L
 - Vivo Y31 (2015) - pd1505
+- Vivo Y31A (2016) - pd1505f
 - Vivo Y51L (2015) - pd1510
 - Vodafone Smart prime 6
 - Wiko Pulp 4G
