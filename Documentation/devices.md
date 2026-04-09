@@ -98,6 +98,8 @@
 - Leeco s2
 - Lenovo K5 Play (l38011)
 - Lenovo Tab M10 HD (TB-X505X) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
+- Motorola Moto E4 (perry) (MSM8917)
+- Motorola Moto E4 (perry) (MSM8920)
 - Motorola Moto E5 (nora)
 - Motorola Moto E5 Plus (hannah) (MSM8917)
 - Motorola Moto E5 Plus (hannah) (MSM8937)
