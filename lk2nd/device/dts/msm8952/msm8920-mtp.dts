@@ -11,6 +11,14 @@
 };
 
 &lk2nd {
+	motorola-perry {
+		model = "Motorola Moto E4 (perry) (MSM8920)";
+		compatible = "motorola,perry";
+		lk2nd,match-device = "perry";
+
+		lk2nd,dtb-files = "msm8920-motorola-perry";
+	};
+
 	motorola-nora {
 		model = "Motorola Moto E5 (nora) (MSM8920)";
 		compatible = "motorola,nora";

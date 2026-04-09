@@ -35,6 +35,14 @@
 		};
 	};
 
+	motorola-perry {
+		model = "Motorola Moto E4 (perry) (MSM8917)";
+		compatible = "motorola,perry";
+		lk2nd,match-device = "perry";
+
+		lk2nd,dtb-files = "msm8917-motorola-perry";
+	};
+
 	motorola-nora {
 		model = "Motorola Moto E5 (nora) (MSM8917)";
 		compatible = "motorola,nora";
