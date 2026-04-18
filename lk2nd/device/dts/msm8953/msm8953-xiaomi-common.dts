@@ -11,6 +11,34 @@
 };
 
 &lk2nd {
+	tiffany {
+		/*
+		 * Xiaomi Mi 5X (tiffany) and Xiaomi Mi A1 (tissot) are hardware-identical.
+		 * tiffany's bootloader matches DAISY, but the panels match tissot.
+		 * Both properties are required to correctly identify tiffany.
+		 */
+		model = "Xiaomi Mi 5X (tiffany)";
+		compatible = "xiaomi,tiffany";
+		lk2nd,match-bootloader = "*DAISY*";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8953-xiaomi-tissot";
+
+		panel {
+			compatible = "xiaomi,tissot-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili7807_fhd_video {
+				compatible = "mdss,ili7807-fhd";
+			};
+			qcom,mdss_dsi_otm1911_fhd_video {
+				compatible = "mdss,otm1911-fhd";
+			};
+			qcom,mdss_dsi_ft8716_fhd_video {
+				compatible = "mdss,ft8716-fhd";
+			};
+		};
+	};
+
 	tissot {
 		model = "Xiaomi Mi A1 (tissot)";
 		compatible = "xiaomi,tissot";
