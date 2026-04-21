@@ -36,7 +36,30 @@
 			};
 		};
 	};
+    
+    matisse3g_t531 {
+		model = "Samsung Galaxy Tab 4 10.1 3G (SM-T531)";
+		compatible = "samsung,matisse-wifi", "samsung,matisse";
+		lk2nd,match-bootloader = "T531*";
 
+		lk2nd,dtb-files = "apq8026-samsung-matisse-wifi";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 	/* rev 7 */
 
 	ms013g {
