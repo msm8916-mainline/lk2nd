@@ -84,6 +84,7 @@
 - Nokia 8000 4G
 - Nokia 8110 4G
 - ZTE N818S (sapphire)
+- Lenovo Tab e10 (TB-X104F)
 
 ### lk2nd-msm8952
 

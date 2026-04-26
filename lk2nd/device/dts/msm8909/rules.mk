@@ -12,3 +12,5 @@ QCDTBS += \
 
 ADTBS += \
 	$(LOCAL_DIR)/apq8009w-wtp.dtb \
+	$(LOCAL_DIR)/apq8009-qrd.dtb \
+
