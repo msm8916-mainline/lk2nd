@@ -34,191 +34,350 @@
 #include <platform.h>
 #include <board.h>
 
-
-static uint32_t ldo1[][11]=
-{
+static uint32_t ldo1[][11] =
 	{
-		LDOA_RES_TYPE, 1,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
-		KEY_MICRO_VOLT, 4, 0,
-		KEY_CURRENT, 4, 0,
-	},
+		{
+			LDOA_RES_TYPE,
+			1,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_DISABLE,
+			KEY_MICRO_VOLT,
+			4,
+			0,
+			KEY_CURRENT,
+			4,
+			0,
+		},
 
-	{
-		LDOA_RES_TYPE, 1,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
-		KEY_MICRO_VOLT, 4, 1200000,
-		KEY_CURRENT, 4, 40,
-	},
+		{
+			LDOA_RES_TYPE,
+			1,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_ENABLE,
+			KEY_MICRO_VOLT,
+			4,
+			1200000,
+			KEY_CURRENT,
+			4,
+			40,
+		},
 };
 
-static uint32_t ldo2[][11]=
-{
+static uint32_t ldo2[][11] =
 	{
-		LDOA_RES_TYPE, 2,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
-		KEY_MICRO_VOLT, 4, 0,
-		KEY_CURRENT, 4, 0,
-	},
+		{
+			LDOA_RES_TYPE,
+			2,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_DISABLE,
+			KEY_MICRO_VOLT,
+			4,
+			0,
+			KEY_CURRENT,
+			4,
+			0,
+		},
 
-	{
-		LDOA_RES_TYPE, 2,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
-		KEY_MICRO_VOLT, 4, 1200000,
-		KEY_CURRENT, 4, 40,
-	},
+		{
+			LDOA_RES_TYPE,
+			2,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_ENABLE,
+			KEY_MICRO_VOLT,
+			4,
+			1200000,
+			KEY_CURRENT,
+			4,
+			40,
+		},
 };
 
 static uint32_t ldo5[][11] = {
 	{
-		LDOA_RES_TYPE, 5,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
-		KEY_MICRO_VOLT, 4, 0,
-		KEY_CURRENT, 4, 0,
+		LDOA_RES_TYPE,
+		5,
+		KEY_SOFTWARE_ENABLE,
+		4,
+		GENERIC_DISABLE,
+		KEY_MICRO_VOLT,
+		4,
+		0,
+		KEY_CURRENT,
+		4,
+		0,
 	},
 
 	{
-		LDOA_RES_TYPE, 5,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
-		KEY_MICRO_VOLT, 4, 1800000,
-		KEY_CURRENT, 4, 150,
+		LDOA_RES_TYPE,
+		5,
+		KEY_SOFTWARE_ENABLE,
+		4,
+		GENERIC_ENABLE,
+		KEY_MICRO_VOLT,
+		4,
+		1800000,
+		KEY_CURRENT,
+		4,
+		150,
 	},
 };
 
-static uint32_t ldo6[][11]=
-{
+static uint32_t ldo6[][11] =
 	{
-		LDOA_RES_TYPE, 6,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
-		KEY_MICRO_VOLT, 4, 0,
-		KEY_CURRENT, 4, 0,
-	},
+		{
+			LDOA_RES_TYPE,
+			6,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_DISABLE,
+			KEY_MICRO_VOLT,
+			4,
+			0,
+			KEY_CURRENT,
+			4,
+			0,
+		},
 
-	{
-		LDOA_RES_TYPE, 6,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
-		KEY_MICRO_VOLT, 4, 1800000,
-		KEY_CURRENT, 4, 150,
-	},
+		{
+			LDOA_RES_TYPE,
+			6,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_ENABLE,
+			KEY_MICRO_VOLT,
+			4,
+			1800000,
+			KEY_CURRENT,
+			4,
+			150,
+		},
 };
 
-static uint32_t ldo6_pm660[][11]=
-{
+static uint32_t ldo6_pm660[][11] =
 	{
-		LDOA_RES_TYPE, 6,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
-		KEY_MICRO_VOLT, 4, 0,
-		KEY_CURRENT, 4, 0,
-	},
+		{
+			LDOA_RES_TYPE,
+			6,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_DISABLE,
+			KEY_MICRO_VOLT,
+			4,
+			0,
+			KEY_CURRENT,
+			4,
+			0,
+		},
 
-	{
-		LDOA_RES_TYPE, 6,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
-		KEY_MICRO_VOLT, 4, 800000,
-		KEY_CURRENT, 4, 150,
-	},
+		{
+			LDOA_RES_TYPE,
+			6,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_ENABLE,
+			KEY_MICRO_VOLT,
+			4,
+			800000,
+			KEY_CURRENT,
+			4,
+			150,
+		},
 };
 
-static uint32_t ldo11[][11]=
-{
+static uint32_t ldo11[][11] =
 	{
-		LDOA_RES_TYPE, 11,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
-		KEY_MICRO_VOLT, 4, 0,
-		KEY_CURRENT, 4, 0,
-	},
+		{
+			LDOA_RES_TYPE,
+			11,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_DISABLE,
+			KEY_MICRO_VOLT,
+			4,
+			0,
+			KEY_CURRENT,
+			4,
+			0,
+		},
 
+		{
+			LDOA_RES_TYPE,
+			11,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_ENABLE,
+			KEY_MICRO_VOLT,
+			4,
+			2950000,
+			KEY_CURRENT,
+			4,
+			150,
+		},
+};
+static uint32_t ldo12[][11] =
 	{
-		LDOA_RES_TYPE, 11,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
-		KEY_MICRO_VOLT, 4, 2950000,
-		KEY_CURRENT, 4, 150,
-	},
+		{
+			LDOA_RES_TYPE,
+			12,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_DISABLE,
+			KEY_MICRO_VOLT,
+			4,
+			0,
+			KEY_CURRENT,
+			4,
+			0,
+		},
+
+		{
+			LDOA_RES_TYPE,
+			12,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_ENABLE,
+			KEY_MICRO_VOLT,
+			4,
+			2950000,
+			KEY_CURRENT,
+			4,
+			22,
+		},
+};
+static uint32_t ldo13_pm660[][11] =
+	{
+		{
+			LDOA_RES_TYPE,
+			13,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_DISABLE,
+			KEY_MICRO_VOLT,
+			4,
+			0,
+			KEY_CURRENT,
+			4,
+			0,
+		},
+
+		{
+			LDOA_RES_TYPE,
+			13,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_ENABLE,
+			KEY_MICRO_VOLT,
+			4,
+			1800000,
+			KEY_CURRENT,
+			4,
+			40,
+		},
 };
 
-static uint32_t ldo13_pm660[][11]=
-{
+static uint32_t ldo15_pm660[][11] =
 	{
-		LDOA_RES_TYPE, 13,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
-		KEY_MICRO_VOLT, 4, 0,
-		KEY_CURRENT, 4, 0,
-	},
+		{
+			LDOA_RES_TYPE,
+			15,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_DISABLE,
+			KEY_MICRO_VOLT,
+			4,
+			0,
+			KEY_CURRENT,
+			4,
+			0,
+		},
 
-	{
-		LDOA_RES_TYPE, 13,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
-		KEY_MICRO_VOLT, 4, 1800000,
-		KEY_CURRENT, 4, 40,
-	},
+		{
+			LDOA_RES_TYPE,
+			15,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_ENABLE,
+			KEY_MICRO_VOLT,
+			4,
+			2800000,
+			KEY_CURRENT,
+			4,
+			40,
+		},
 };
 
-static uint32_t ldo15_pm660[][11]=
-{
+static uint32_t ldo17[][11] =
 	{
-		LDOA_RES_TYPE, 15,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
-		KEY_MICRO_VOLT, 4, 0,
-		KEY_CURRENT, 4, 0,
-	},
+		{
+			LDOA_RES_TYPE,
+			17,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_DISABLE,
+			KEY_MICRO_VOLT,
+			4,
+			0,
+			KEY_CURRENT,
+			4,
+			0,
+		},
 
-	{
-		LDOA_RES_TYPE, 15,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
-		KEY_MICRO_VOLT, 4, 2800000,
-		KEY_CURRENT, 4, 40,
-	},
-};
-
-static uint32_t ldo17[][11]=
-{
-	{
-		LDOA_RES_TYPE, 17,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_DISABLE,
-		KEY_MICRO_VOLT, 4, 0,
-		KEY_CURRENT, 4, 0,
-	},
-
-	{
-		LDOA_RES_TYPE, 17,
-		KEY_SOFTWARE_ENABLE, 4, GENERIC_ENABLE,
-		KEY_MICRO_VOLT, 4, 2850000,
-		KEY_CURRENT, 4, 40,
-	},
+		{
+			LDOA_RES_TYPE,
+			17,
+			KEY_SOFTWARE_ENABLE,
+			4,
+			GENERIC_ENABLE,
+			KEY_MICRO_VOLT,
+			4,
+			2850000,
+			KEY_CURRENT,
+			4,
+			40,
+		},
 };
 
 void regulator_enable(uint32_t enable)
 {
 	uint32_t hw_subtype = board_hardware_subtype();
 
-	if (platform_is_msm8956()) {
+	if (platform_is_msm8956())
+	{
 		if (enable & REG_LDO1)
 			rpm_send_data(&ldo1[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
-
-	} else if (platform_is_sdm439() || platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w()) {
+	}
+	else if (platform_is_sdm439() || platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w())
+	{
 		if (enable & REG_LDO5)
 			rpm_send_data(&ldo5[GENERIC_ENABLE][0],
-				36, RPM_REQUEST_TYPE);
-	} else {
+						  36, RPM_REQUEST_TYPE);
+	}
+	else
+	{
 		if (enable & REG_LDO2)
 			rpm_send_data(&ldo2[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 	}
 
-	if ((platform_is_sdm429() && (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660)) || platform_is_sdm429w() || platform_is_sda429w()) {
+	if ((platform_is_sdm429() && (board_hardware_subtype() == HW_PLATFORM_SUBTYPE_429W_PM660)) || platform_is_sdm429w() || platform_is_sda429w())
+	{
 		if (enable & REG_LDO13)
 			rpm_send_data(&ldo13_pm660[GENERIC_ENABLE][0],
-				36, RPM_REQUEST_TYPE);
+						  36, RPM_REQUEST_TYPE);
 		if (enable & REG_LDO15)
 			rpm_send_data(&ldo15_pm660[GENERIC_ENABLE][0],
-				36, RPM_REQUEST_TYPE);
+						  36, RPM_REQUEST_TYPE);
 	}
 
 	if (enable & REG_LDO17)
 		rpm_send_data(&ldo17[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 
-	if (enable & REG_LDO6) {
-		if ((platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w()) && hw_subtype
-				== HW_PLATFORM_SUBTYPE_429W_PM660)
+	if (enable & REG_LDO6)
+	{
+		if ((platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w()) && hw_subtype == HW_PLATFORM_SUBTYPE_429W_PM660)
 			rpm_send_data(&ldo6_pm660[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 		else
 			rpm_send_data(&ldo6[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
@@ -226,19 +385,25 @@ void regulator_enable(uint32_t enable)
 
 	if (enable & REG_LDO11)
 		rpm_send_data(&ldo11[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
+	if (enable & REG_LDO12)
+		rpm_send_data(&ldo12[GENERIC_ENABLE][0], 36, RPM_REQUEST_TYPE);
 }
 
 void regulator_disable(uint32_t enable)
 {
-	if (platform_is_msm8956()) {
+	if (platform_is_msm8956())
+	{
 		if (enable & REG_LDO1)
 			rpm_send_data(&ldo1[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
-
-	} else if (platform_is_sdm439() || platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w()) {
+	}
+	else if (platform_is_sdm439() || platform_is_sdm429() || platform_is_sdm429w() || platform_is_sda429w())
+	{
 		if (enable & REG_LDO5)
 			rpm_send_data(&ldo5[GENERIC_DISABLE][0],
-				36, RPM_REQUEST_TYPE);
-	} else {
+						  36, RPM_REQUEST_TYPE);
+	}
+	else
+	{
 		if (enable & REG_LDO2)
 			rpm_send_data(&ldo2[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 	}
@@ -251,4 +416,7 @@ void regulator_disable(uint32_t enable)
 
 	if (enable & REG_LDO11)
 		rpm_send_data(&ldo11[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
+
+	if (enable & REG_LDO12)
+		rpm_send_data(&ldo12[GENERIC_DISABLE][0], 36, RPM_REQUEST_TYPE);
 }

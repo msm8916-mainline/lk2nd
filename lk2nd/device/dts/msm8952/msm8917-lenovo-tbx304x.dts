@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/dts-v1/;
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8917 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0>;
+};
+
+&lk2nd {
+	model = "Lenovo Tab 4 10 (TB-X304X)";
+	compatible = "lenovo,tbx304x";
+
+	lk2nd,dtb-files = "msm8917-lenovo-tbx304x";
+	lk2nd,match-panel;
+
+	sd-card {
+		compatible = "lk2nd,sd-card";
+		cd-gpios = <&tlmm 67 GPIO_ACTIVE_LOW>;
+	};
+
+	panel {
+		compatible = "lenovo,tbx304x-panel", "lk2nd,panel";
+		qcom,mdss_dsi_nt35521s_wxga_video {
+			compatible = "lenovo,tbx304x-nt35521s";
+			touchscreen-compatible = "novatek,nt35521s";
+		};
+	};
+};
