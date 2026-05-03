@@ -37,7 +37,10 @@
 		};
 	};
     
-    matisse3g_t531 {
+
+	/* rev 2 */
+
+	matisse3gxx {
 		model = "Samsung Galaxy Tab 4 10.1 3G (SM-T531)";
 		compatible = "samsung,matisse-wifi", "samsung,matisse";
 		lk2nd,match-bootloader = "T531*";
