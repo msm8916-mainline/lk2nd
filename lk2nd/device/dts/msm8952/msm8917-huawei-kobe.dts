@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * This device is quirky. It excluded from generic build.
+ *
+ * Compile lk2nd with the following flags to run on this device
+ * LK2ND_ADTBS="msm8917-huawei-kobe.dtb"
+ * LK2ND_COMPATIBLE="huawei,kobe"
+ */
+
+/ {
+	qcom,msm-id = <0x12f 0x00 0x134 0x00 0x135 0x00>;
+  qcom,board-id = <0x1f45 0x00>;
+};
+
+&lk2nd {
+	/*
+	 * There are 3 versions:
+	 *  - L-09 (Global)
+	 *  - L-03 (USA)
+	 *  - W-09 (WiFi only)
+	 */
+
+	huawei-kobe {
+		model = "Huawei Technologies, Inc. Kobe-W09";
+		compatible = "huawei,kobe";
+		lk2nd,dtb-files = "msm8917-huawei-kobe";
+	};
+};
