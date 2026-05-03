@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * This device is quirky. It excluded from generic build.
+ * To run lk2nd on this device you need to flash custom bootloader or buy unlock code and unlock it.
+ * Since there is multiple versions of tablet you may need to change qcom,board-id to match yours device firmware
+ * Read more https://wiki.postmarketos.org/wiki/Huawei_Mediapad_T3_8_(huawei-kobe)
+ *
+ * Compile lk2nd with the following flags to run on this device
+ * LK2ND_ADTBS="msm8917-huawei-kobe.dtb"
+ * LK2ND_COMPATIBLE="huawei,kobe"
+ *//
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8917 0>;
+  qcom,board-id = <0x1f45 0x00>;
+};
+
+&lk2nd {
+	/*
+	 * There are 4 versions:
+	 *  - L09 (Global)
+	 *  - L09CHN (China)
+	 *  - W09 (WiFi only Global)
+  	 *  - W09CHN (WIFI only China)
+	 */
+
+	huawei-kobe {
+		model = "Huawei Mediapad T3 8 (kobe)";
+		compatible = "huawei,kobe";
+		lk2nd,dtb-files = "msm8917-huawei-kobe";
+	};
+};
