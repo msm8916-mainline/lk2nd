@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8937 0>;
+	qcom,board-id = <0x2000b 0>;
+};
+
+&lk2nd {
+		model = "Readboy G500X Tablet";
+		compatible = "readboy,g500x";
+
+		lk2nd,match-device = "g500x";
+		lk2nd,dtb-files = "msm8937-readboy-g500x";
+
+	};
