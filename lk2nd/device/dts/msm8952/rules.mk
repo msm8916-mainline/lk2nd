@@ -13,6 +13,7 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8937-nokia-nd1.dtb \
 	$(LOCAL_DIR)/msm8937-nokia-ple.dtb \
 	$(LOCAL_DIR)/msm8937-xiaomi-land.dtb \
+  $(LOCAL_DIR)/msm8937-readboy-g500x.dtb \
 	$(LOCAL_DIR)/msm8940-mtp.dtb \
 	$(LOCAL_DIR)/msm8940-oppo-a57.dtb \
 	$(LOCAL_DIR)/msm8940-xiaomi-santoni.dtb \
