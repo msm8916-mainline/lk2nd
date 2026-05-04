@@ -14,7 +14,7 @@
  * Compile lk2nd with the following flags to run on this device
  * LK2ND_ADTBS="msm8917-huawei-kobe.dtb"
  * LK2ND_COMPATIBLE="huawei,kobe"
- *//
+ */
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8917 0>;
