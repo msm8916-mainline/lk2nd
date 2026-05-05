@@ -6,6 +6,10 @@
 #ifndef _PANEL_NT35510S_FWVGA_CMD_H_
 #define _PANEL_NT35510S_FWVGA_CMD_H_
 
+#ifndef NT35510S_DOPCTR_0_DSIM
+#define NT35510S_DOPCTR_0_DSIM (0x10) /* Enable video mode on DSI */
+#endif
+
 #include <mipi_dsi.h>
 #include <panel_display.h>
 #include <panel.h>
@@ -15,7 +19,7 @@ static struct panel_config nt35510s_fwvga_cmd_panel_data = {
 	.panel_node_id = "qcom,mdss_dsi_nt35510s_fwvga_cmd",
 	.panel_controller = "dsi:0:",
 	.panel_compatible = "qcom,mdss-dsi-panel",
-	.panel_type = 1,
+	.panel_type = 0,
 	.panel_destination = "DISPLAY_1",
 	/* .panel_orientation not supported yet */
 	.panel_framerate = 60,
@@ -174,7 +178,7 @@ static char nt35510s_fwvga_cmd_on_cmd_27[] = {
 	0x08, 0x00, 0xff, 0xff
 };
 static char nt35510s_fwvga_cmd_on_cmd_28[] = {
-	0x03, 0x00, 0x39, 0xc0, 0xb1, 0xec, 0x00, 0xff
+	0x03, 0x00, 0x39, 0xc0, 0xb1, 0xec | NT35510S_DOPCTR_0_DSIM, 0x00, 0xff
 };
 static char nt35510s_fwvga_cmd_on_cmd_29[] = {
 	0x02, 0x00, 0x39, 0xc0, 0xb5, 0x6b, 0xff, 0xff
