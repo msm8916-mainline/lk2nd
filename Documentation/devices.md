@@ -56,7 +56,7 @@
 - Samsung Galaxy Tab A 8.0 (2015) - SM-T350, SM-T355, SM-T355Y, SM-T357W
 - Samsung Galaxy Tab A 9.7 (2015) - SM-T550, SM-T555
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
-- Vivo Y13L (2015) - pd1304cl
+- Vivo Y13L / Y613F / Y23L (2015) - PD1304CL , PD1304CF , PD1419L 
 - Vivo Y21L
 - Vivo Y31 (2015) - pd1505
 - Vivo Y31A (2016) - pd1505f
