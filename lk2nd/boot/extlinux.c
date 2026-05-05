@@ -19,16 +19,6 @@
 
 #include "boot.h"
 
-struct label {
-	const char *name;
-	const char *kernel;
-	const char *initramfs;
-	const char *dtb;
-	const char *dtbdir;
-	const char **dtboverlays;
-	const char *cmdline;
-};
-
 enum token {
 	CMD_LABEL,
 	CMD_DEFAULT,
@@ -193,6 +183,21 @@ static int count_lines(char *data, size_t size)
 	return acc;
 }
 
+static void copy_label_data(struct label *label) {
+	if (label->name)
+		label->name = strdup(label->name);
+	if (label->kernel)
+		label->kernel = strdup(label->kernel);
+	if (label->initramfs)
+		label->initramfs = strdup(label->initramfs);
+	if (label->dtb)
+		label->dtb = strdup(label->dtb);
+	if (label->dtbdir)
+		label->dtbdir = strdup(label->dtbdir);
+	if (label->cmdline)
+		label->cmdline = strdup(label->cmdline);
+}
+
 /**
  * parse_conf() - Extract default label from extlinux.conf
  * @data: File contents
@@ -208,7 +213,7 @@ static int count_lines(char *data, size_t size)
  *
  * Returns: 0 on success or negative error on parse failure.
  */
-static int parse_conf(char *data, size_t size, struct label *label)
+static int parse_conf(char *data, size_t size, struct label **labels_out, int* default_label_idx, int* labels_count_out)
 {
 	char *command = NULL, *value = NULL;
 	char *overlay, *saveptr;
@@ -219,7 +224,6 @@ static int parse_conf(char *data, size_t size, struct label *label)
 	} *commands;
 	int commands_count;
 	struct label *labels;
-	struct label *default_label = NULL;
 	const char *default_name = "";
 	int labels_count = 0;
 	int label_idx;
@@ -302,18 +306,22 @@ static int parse_conf(char *data, size_t size, struct label *label)
 		}
 	}
 
-	default_label = &labels[0];
+	*default_label_idx = 0;
+
+	for(i = 0; i < labels_count; i++) {
+		copy_label_data(&labels[i]);
+	}
 
 	for (i = 0; i < labels_count; ++i) {
 		if (!strcmp(default_name, labels[i].name)) {
-			default_label = &labels[i];
+			*default_label_idx = i;
 			break;
 		}
 	}
 
-	memcpy(label, default_label, sizeof(*label));
+	*labels_out = labels;
+	*labels_count_out = labels_count;
 
-	free(labels);
 	free(commands);
 
 	return 0;
@@ -635,17 +643,11 @@ static void lk2nd_boot_label(struct label *label)
 		   0);
 }
 
-/**
- * lk2nd_try_extlinux() - Try to boot with extlinux
- *
- * Check if /extlinux/extlinux.conf exists and try to
- * boot it if so.
- */
-void lk2nd_try_extlinux(const char *root)
+
+int lk2nd_get_extlinux_labels(const char *root, struct label **labels, int *default_label_idx, int* labels_count)
 {
 	struct filehandle *fileh;
 	struct file_stat stat;
-	struct label label = {0};
 	char path[64];
 	char *data;
 	int ret;
@@ -654,7 +656,7 @@ void lk2nd_try_extlinux(const char *root)
 	ret = fs_open_file(path, &fileh);
 	if (ret < 0) {
 		dprintf(SPEW, "No extlinux config in %s: %d\n", root, ret);
-		return;
+		return -1;
 	}
 
 	fs_stat_file(fileh, &stat);
@@ -662,27 +664,72 @@ void lk2nd_try_extlinux(const char *root)
 	fs_read_file(fileh, data, 0, stat.size);
 	fs_close_file(fileh);
 
-	ret = parse_conf(data, stat.size, &label);
+	ret = parse_conf(data, stat.size, labels, default_label_idx, labels_count);
 	if (ret < 0)
 		goto error;
 
-	if (!expand_conf(&label, root))
-		goto error;
+	dprintf(INFO, "count: %d\n", *labels_count);
 
 	free(data);
 
-	dprintf(SPEW, "Parsed %s\n", path);
-	dprintf(SPEW, "kernel    = %s\n", label.kernel);
-	dprintf(SPEW, "dtb       = %s\n", label.dtb);
-	dprintf(SPEW, "dtbdir    = %s\n", label.dtbdir);
-	dprintf(SPEW, "initramfs = %s\n", label.initramfs);
-	dprintf(SPEW, "cmdline   = %s\n", label.cmdline);
+	return 0;
 
-	lk2nd_boot_label(&label);
+error:
+	dprintf(INFO, "Failed to parse %s\n", path);
+	free(data);
+	return -1;
+}
 
+int lk2nd_expand_conf_and_boot_label(struct label *label, const char *root)
+{
+	if (!expand_conf(label, root))
+		return -1;
+	dprintf(INFO, "kernel    = %s\n", label->kernel);
+	dprintf(INFO, "dtb       = %s\n", label->dtb);
+	dprintf(INFO, "dtbdir    = %s\n", label->dtbdir);
+	dprintf(INFO, "initramfs = %s\n", label->initramfs);
+	dprintf(INFO, "cmdline   = %s\n", label->cmdline);
+	lk2nd_boot_label(label);
+	return -1;
+}
+
+/**
+ * lk2nd_try_extlinux() - Try to boot with extlinux
+ *
+ * Check if /extlinux/extlinux.conf exists and try to
+ * boot it if so.
+ */
+void lk2nd_try_extlinux(const char *root)
+{
+	struct label *labels;
+	struct label *label;
+	char path[64];
+	int ret;
+	int default_label_idx;
+	int labels_count;
+
+	ret = lk2nd_get_extlinux_labels(root, &labels, &default_label_idx, &labels_count);
+	if (ret < 0) {
+		return;
+	}
+
+	label = &labels[default_label_idx];
+
+	if (!expand_conf(label, root))
+		goto error;
+
+	dprintf(INFO, "Parsed %s\n", path);
+	dprintf(INFO, "kernel    = %s\n", label->kernel);
+	dprintf(INFO, "dtb       = %s\n", label->dtb);
+	dprintf(INFO, "dtbdir    = %s\n", label->dtbdir);
+	dprintf(INFO, "initramfs = %s\n", label->initramfs);
+	dprintf(INFO, "cmdline   = %s\n", label->cmdline);
+
+	lk2nd_boot_label(label);
+
+	free(labels);
 	return;
 
 error:
 	dprintf(INFO, "Failed to parse extlinux.conf\n");
-	free(data);
 }
