@@ -63,6 +63,7 @@ $(OUTBOOTIMG): $(OUTBINDTB) $(OUTQCDT) $(RAMDISK)
 		--kernel=$< \
 		--output=$@ \
 		--cmdline="$(MKBOOTIMG_CMDLINE)" \
+		--tags_offset 0x06500000 \
 		$(if $(OUTQCDT),--qcdt=$(OUTQCDT)) \
 		$(if $(MKBOOTIMG_BASE),--base=$(MKBOOTIMG_BASE)) \
 		$(if $(MKBOOTIMG_PAGESIZE),--pagesize=$(MKBOOTIMG_PAGESIZE)) \
