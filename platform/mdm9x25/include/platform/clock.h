@@ -34,5 +34,7 @@
 void platform_clock_init(void);
 void hsusb_clock_init(void);
 void clock_config_uart_dm(uint8_t id);
+void clock_init_mmc(uint32_t interface);
+void clock_config_mmc(uint32_t interface, uint32_t freq);
 
 #endif
