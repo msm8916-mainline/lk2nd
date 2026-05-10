@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <0x01 0x01>;
+};
+
+/*
+ * Since the stock Android version on this device reports as 4.4, aboot is only 32-bit,
+ * so lk1st is required, along with replacing tz and hyp.
+ *
+ * Build command:
+ *   make TOOLCHAIN_PREFIX=arm-none-eabi- lk1st-msm8916 \
+ *     LK2ND_DISPLAY=nt35510s_fwvga_cmd \
+ *     LK2ND_BUNDLE_DTB=msm8916-vivo-pd1304.dtb
+ *
+ * Touch is enabled by default with EDT.
+ *   touchscreen-compatible = "edt,edt-ft5306";
+ *
+ * Some touchscreens require changing the compatible property to Goodix.
+ *   touchscreen-compatible = "goodix,gt928";
+ */
+
+&lk2nd {
+	model = "Vivo Y13L / Y23L / Y613F";
+	compatible = "vivo,pd1304","vivo,pd1419";
+
+	lk2nd,dtb-files = "msm8916-vivo-pd1304";
+
+	panel {
+		compatible = "vivo,pd1304-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_nt35510s_fwvga_video{
+			compatible = "mdss,nt35510s-video";
+			touchscreen-compatible = "edt,edt-ft5306";
+		};
+
+		qcom,mdss_dsi_nt35510s_fwvga_cmd {
+			compatible = "mdss,nt35510s";
+			touchscreen-compatible = "edt,edt-ft5306";
+		};
+	};
+	
+	regulator-backlight {
+		compatible = "regulator-fixed";
+		gpios = <&tlmm 8 GPIO_ACTIVE_HIGH>;
+	};
+};
