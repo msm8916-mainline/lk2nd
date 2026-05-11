@@ -18,7 +18,7 @@
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8917 0>;
-  qcom,board-id = <0x1f45 0x00>;
+	qcom,board-id = <0x1f45 0x00>;
 };
 
 &lk2nd {
