@@ -110,6 +110,7 @@
 - Motorola Moto G5S (montana)
 - Motorola Moto G6 Play (jeter)
 - OPPO A57 (A57) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8940-oppo-a57.dts`)
+- Readboy G500X Tablet (msm8937_64)(support lk1st with qtestsign)
 - Redmi 3S (land)
 - Redmi 4 (prada)
 - Redmi 4A (rolex)

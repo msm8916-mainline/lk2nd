@@ -16,5 +16,5 @@
 
 		lk2nd,match-device = "g500x";
 		lk2nd,dtb-files = "msm8937-readboy-g500x";
-
+    lk2nd,enable-storage;
 	};
