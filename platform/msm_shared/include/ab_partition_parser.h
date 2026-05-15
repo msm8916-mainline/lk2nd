@@ -79,7 +79,11 @@ int partition_fill_partition_meta(char has_slot_pname[][MAX_GET_VAR_NAME_SIZE],
 				  char has_slot_reply[][MAX_RSP_SIZE],
 				  int array_size);	/* Fill partition slot info meta*/
 
-static inline bool partition_multislot_is_supported(void)
-{
-	return target_is_emmc_boot() && _partition_multislot_is_supported();
+static inline bool partition_multislot_is_supported(void){
+#if SLOTS_SUPPORTED
+	return true;
+#else
+	return false;
+#endif
 }
+				  
