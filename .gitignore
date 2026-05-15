@@ -14,3 +14,6 @@ ncscope.*
 # clangd
 .cache
 compile_commands.json
+
+# direnv
+.direnv

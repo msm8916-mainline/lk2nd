@@ -2,6 +2,7 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 ADTBS += \
+    $(LOCAL_DIR)/msm8917-lenovo-tbx304x.dtb \
 	$(LOCAL_DIR)/msm8917-mtp.dtb \
 	$(LOCAL_DIR)/msm8917-xiaomi-common.dtb \
 	$(LOCAL_DIR)/msm8917-xiaomi-riva.dtb \
@@ -29,3 +30,6 @@ ADTBS += \
 
 DTBS += \
 	$(LOCAL_DIR)/msm8917-huawei-agassi.dtb \
+
+DEFINES += MMC_SDHCI_SUPPORT=1
+DEFINES += MMC_SDHCI_MSM_PLATFORM=1
