@@ -29,9 +29,15 @@
 
 	sony-eagle {
 		/*
-		 * To build for sony-eagle, add the following flag in your make cmdline:
+		 * To build for sony-eagle, boot the downstream kernel and run the following
+		 * command in adb shell:
 		 *
-		 * make ... LK2ND_DISPLAY="innolux_qhd_video"
+		 * dmesg | grep LCD_ID
+		 *
+		 * Then pass appropriate LK2ND display based on LCD_ID value:
+		 * make ... LK2ND_DISPLAY="innolux_qhd_video" (LCD_ID=0)
+		 *			   or
+		 *			   "truly_qhd_video" (LCD_ID=1)
 		 *
 		 * `LK2ND_DISPLAY` selects the appropriate display driver. This is required
 		 * because the screen initialization needs specific configuration.
