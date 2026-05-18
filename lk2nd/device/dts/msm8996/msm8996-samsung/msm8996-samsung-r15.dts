@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include "msm8996-samsung.dtsi"
+
+/ {
+	qcom,board-id = <QCOM_BOARD_ID_MTP 15>;
+};
+
+&lk2nd {
+	lk2nd,match-cmdline = "* androidboot.revision=15 *";
+
+	graceqlte {
+		qcom,board-id = <QCOM_BOARD_ID_MTP 9>;
+	};
+
+	heroqlte {
+		model = "Samsung Galaxy S7 Rev15";
+	};
+
+	hero2qlte {
+		model = "Samsung Galaxy S7 Edge Rev15";
+	};
+};
