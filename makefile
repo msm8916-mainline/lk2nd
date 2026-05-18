@@ -169,8 +169,6 @@ endif
 #Enable kaslr seed support
 ifeq ($(ENABLE_KASLRSEED),1)
   DEFINES += ENABLE_KASLRSEED_SUPPORT=1
-else
-  DEFINES += ENABLE_KASLRSEED_SUPPORT=0
 endif
 
 ifeq ($(TARGET_USE_SYSTEM_AS_ROOT_IMAGE),1)
