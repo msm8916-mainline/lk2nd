@@ -30,6 +30,3 @@ ADTBS += \
 
 DTBS += \
 	$(LOCAL_DIR)/msm8917-huawei-agassi.dtb \
-
-DEFINES += MMC_SDHCI_SUPPORT=1
-DEFINES += MMC_SDHCI_MSM_PLATFORM=1
