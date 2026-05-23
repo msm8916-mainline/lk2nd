@@ -17,16 +17,14 @@
 	lk2nd,match-panel;
 
 	panel {
-		compatible = "lenovo,tbx304x-panel", "lk2nd,panel";s
+		compatible = "lenovo,tbx304x-panel", "lk2nd,panel";
 
 		qcom,mdss_dsi_nt35521s_wxga_video {
 			compatible = "lenovo,tbx304x-nt35521s";
-			touchscreen-compatible = "novatek,nt35521s";
 		};
 
 		qcom,mdss_dsi_nt35521s_boe_wxga_video {
 			compatible = "lenovo,tbx304x-nt35521s-boe";
-			touchscreen-compatible = "novatek,nt35521s";
 		};
 
 		qcom,mdss_dsi_jd9364_boe_video {
