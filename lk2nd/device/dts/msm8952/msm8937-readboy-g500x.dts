@@ -7,14 +7,17 @@
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8937 0>;
-	qcom,board-id = <0x2000b 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 2, 0) 0>;
 };
 
 &lk2nd {
-		model = "Readboy G500X Tablet";
-		compatible = "readboy,g500x";
+	/*
+	 * Readboy G500X Tablet
+	 * To build lk1st, use: make TOOLCHAIN_PREFIX=arm-none-eabi- lk1st-msm8952
+	 * (with a qtestsign signature after build)
+	 */
+	model = "Readboy G500X Tablet";
+	compatible = "readboy,g500x";
 
-		lk2nd,match-device = "g500x";
-		lk2nd,dtb-files = "msm8937-readboy-g500x";
-    lk2nd,enable-storage;
-	};
+	lk2nd,dtb-files = "msm8937-readboy-g500x";
+};
