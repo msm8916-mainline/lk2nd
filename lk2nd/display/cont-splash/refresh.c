@@ -17,6 +17,9 @@ static void mdp_refresh(void)
 {
 #if MDP3 || MDP4
 	writel(1, MDP_DMA_P_START);
+#ifdef DSI_CMD_MODE_MDP_SW_TRIGGER
+	writel(1, DSI_CMD_MODE_MDP_SW_TRIGGER);
+#endif
 #elif MDP5
 	writel(1, MDP_CTL_0_BASE + CTL_START);
 #endif
