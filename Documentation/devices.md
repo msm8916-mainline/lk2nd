@@ -215,6 +215,7 @@
 
 ### lk2nd-msm8960
 
+- Asus Nexus 7 (flo)
 - Samsung Galaxy Ace 3 LTE (GT-S7275R) (display refresh doesn't work)
 - Samsung Galaxy Express (SGH-I437)
 - Samsung Galaxy S4 Mini (GT-I9195)
