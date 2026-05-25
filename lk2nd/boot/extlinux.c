@@ -476,7 +476,7 @@ extern void boot_linux(void *kernel, unsigned *tags,
 
 #define IS_ARM64(ptr) (ptr->magic_64 == KERNEL64_HDR_MAGIC)
 
-#define MAX_KERNEL_SIZE			(32 * 1024 * 1024)
+#define MAX_KERNEL_SIZE			(64 * 1024 * 1024)
 #define MAX_TAGS_SIZE			(2 * 1024 * 1024)
 #define MAX_RAMDISK_SIZE		(16 * 1024 * 1024)
 
