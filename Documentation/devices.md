@@ -95,7 +95,8 @@
 - HMD Global Nokia 4.2 (panther) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - HMD Global Nokia 5 (nd1)
 - HMD Global Nokia 6 (ple)
-- Huawei Honor 7C (aum-l41) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-huawei-aum.dts`)
+- Huawei Honor 7A Pro (autumn-l29) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-huawei-autumn-l29.dts`)
+- Huawei Honor 7C (autumn-l41) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-huawei-autumn-l41.dts`)
 - Huawei MediaPad T3 10 (ags- l09/l03/w09) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8917-huawei-agassi.dts`)
 - Huawei MediaPad T3 8 (kob- l09/l09chn/w09/w09chn) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8917-huawei-kobe.dts`)
 - Leeco s2

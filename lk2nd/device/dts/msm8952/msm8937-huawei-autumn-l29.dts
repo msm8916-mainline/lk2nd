@@ -21,17 +21,17 @@
  */
 
 / {
-	qcom,msm-id = <QCOM_ID_MSM8937 0x8192>;
-	qcom,board-id = <8331 0>;
+	qcom,msm-id = <QCOM_ID_MSM8937 0x00>;
+	qcom,board-id = <8319 0>;
 };
 
 &lk2nd {
-	aum {
-		model = "Huawei Honor 7C (aum-l41)";
-		compatible = "huawei,aum";
+	autumn-l29 {
+		model = "Huawei Honor 7A Pro (autumn-l29)";
+		compatible = "huawei,autumn-l29";
 		lk2nd,match-panel;
 
-		lk2nd,dtb-files = "msm8937-huawei-aum";
+		lk2nd,dtb-files = "msm8937-huawei-autumn-l29";
 
 		gpio-keys {
 			compatible = "gpio-keys";
@@ -42,25 +42,25 @@
 		};
 
 		panel {
-			compatible = "huawei,aum-panel", "lk2nd,panel";
+			compatible = "huawei,autumn-l29-panel", "lk2nd,panel";
 
-			lcdkit_aum_l41_va_djn_cpt_ili9881c_5p7_hd_video {
-				compatible = "huawei,aum-ili9881c";
+			lcdkit_aum_l29_va_djn_cpt_ili9881c_5p7_hd_video {
+				compatible = "huawei,autumn-ili9881c";
 			};
-			lcdkit_aum_l41_va_djn_inx_ili9881c_5p7_hd_video {
-				compatible = "huawei,aum-ili9881c";
+			lcdkit_aum_l29_va_djn_inx_ili9881c_5p7_hd_video {
+				compatible = "huawei,autumn-ili9881c";
 			};
-			lcdkit_aum_l41_va_ofilm_inx_ili9881c_5p7_hd_video {
-				compatible = "huawei,aum-ili9881c";
+			lcdkit_aum_l29_va_ofilm_inx_ili9881c_5p7_hd_video {
+				compatible = "huawei,autumn-ili9881c";
 			};
-			lcdkit_aum_l41_va_tcl_csot_ft8613_5p7_hd_video {
-				compatible = "huawei,aum-ft8613";
+			lcdkit_aum_l29_va_tcl_csot_ft8613_5p7_hd_video {
+				compatible = "huawei,autumn-ft8613";
 			};
-			lcdkit_aum_l41_va_txd_hsd_hx8394f_5p7_hd_video {
-				compatible = "huawei,aum-hx8394f";
+			lcdkit_aum_l29_va_txd_hsd_hx8394f_5p7_hd_video {
+				compatible = "huawei,autumn-hx8394f";
 			};
-			lcdkit_aum_l41_va_txd_inx_hx8394f_5p7_hd_video {
-				compatible = "huawei,aum-hx8394f";
+			lcdkit_aum_l29_va_txd_inx_hx8394f_5p7_hd_video {
+				compatible = "huawei,autumn-hx8394f";
 			};
 		};
 	};

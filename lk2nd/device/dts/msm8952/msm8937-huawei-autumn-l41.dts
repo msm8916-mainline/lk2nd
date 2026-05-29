@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * To flash lk2nd onto the device, you need to flash lk2nd as the
+ * kernel and flash an empty image in place of the ramdisk.
+ * To create an empty image use the following command:
+ * mkbootimg --kernel /dev/null --ramdisk /dev/null --base 0x80000000 --kernel_offset 0x00008000 --ramdisk_offset 0x02000000 --second_offset 0x00f00000 --tags_offset 0x00000100 --pagesize 2048 --header_version 0 -o ramdisk.img"
+ *
+ * As this device has no boot partition, you'll have to create
+ * one yourself.
+ * To create the partition follow these steps:
+ * ./parted /dev/block/mmcblk0
+ * unit kB
+ * resizepart 55 31209799kB
+ * mkpart boot ext2 31209799kB 100%
+ * quit
+ * dd if=/dev/block/mmcblk0p41 of=/dev/block/mmcblk0p56 bs=1 seek=446 count=64
+ */
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8937 0x00>;
+	qcom,board-id = <8331 0>;
+};
+
+&lk2nd {
+	autumn-l41 {
+		model = "Huawei Honor 7C (autumn-l41)";
+		compatible = "huawei,autumn-l41";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8937-huawei-autumn-l41";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 91 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "huawei,autumn-l41-panel", "lk2nd,panel";
+
+			lcdkit_aum_l41_va_djn_cpt_ili9881c_5p7_hd_video {
+				compatible = "huawei,autumn-ili9881c";
+			};
+			lcdkit_aum_l41_va_djn_inx_ili9881c_5p7_hd_video {
+				compatible = "huawei,autumn-ili9881c";
+			};
+			lcdkit_aum_l41_va_ofilm_inx_ili9881c_5p7_hd_video {
+				compatible = "huawei,autumn-ili9881c";
+			};
+			lcdkit_aum_l41_va_tcl_csot_ft8613_5p7_hd_video {
+				compatible = "huawei,autumn-ft8613";
+			};
+			lcdkit_aum_l41_va_txd_hsd_hx8394f_5p7_hd_video {
+				compatible = "huawei,autumn-hx8394f";
+			};
+			lcdkit_aum_l41_va_txd_inx_hx8394f_5p7_hd_video {
+				compatible = "huawei,autumn-hx8394f";
+			};
+		};
+	};
+};
