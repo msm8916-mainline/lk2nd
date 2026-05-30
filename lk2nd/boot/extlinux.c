@@ -481,9 +481,6 @@ extern void boot_linux(void *kernel, unsigned *tags,
 #endif
 
 #define MAX_TAGS_SIZE			(2 * 1024 * 1024)
-#define MAX_RAMDISK_SIZE		(16 * 1024 * 1024)
-
-#define MAX_KERNEL_SIZE			(MAX_BOOT_SIZE - MAX_TAGS_SIZE - MAX_RAMDISK_SIZE)
 
 struct load_addrs {
 	void *kernel;
@@ -493,7 +490,7 @@ struct load_addrs {
 	uint32_t ramdisk_max_size;
 };
 
-static void choose_addrs(const struct kernel64_hdr *kptr, struct load_addrs *addrs)
+static void choose_addrs(const struct kernel64_hdr *kptr, uint32_t ramdisk_size, struct load_addrs *addrs)
 {
 	uint32_t kernel_offset;
 	void *base;
@@ -504,10 +501,12 @@ static void choose_addrs(const struct kernel64_hdr *kptr, struct load_addrs *add
 	base = (void *)(uintptr_t)BASE_ADDR;
 #endif
 
-	/* FIXME: Find a better approach to allow larger ramdisks */
-	addrs->tags = base + MAX_KERNEL_SIZE;
-	addrs->ramdisk = addrs->tags + MAX_TAGS_SIZE;
-	addrs->ramdisk_max_size = MAX_RAMDISK_SIZE;
+	uint32_t ramdisk_offset = ROUNDDOWN(MAX_BOOT_SIZE - ramdisk_size, 4096);
+	uint32_t tags_offset = ramdisk_offset - MAX_TAGS_SIZE;
+
+	addrs->tags = base + tags_offset;
+	addrs->ramdisk = base + ramdisk_offset;
+	addrs->ramdisk_max_size = MAX_BOOT_SIZE - ramdisk_offset;
 
 	/*
 	 * ARM64 kernels specify the expected text offset in kptr->text_offset.
@@ -532,7 +531,11 @@ static void choose_addrs(const struct kernel64_hdr *kptr, struct load_addrs *add
 	}
 
 	addrs->kernel = base + kernel_offset;
-	addrs->kernel_max_size = MAX_KERNEL_SIZE - kernel_offset;
+	if (tags_offset > kernel_offset) {
+		addrs->kernel_max_size = tags_offset - kernel_offset;
+	} else {
+		addrs->kernel_max_size = 0;
+	}
 }
 
 /**
@@ -548,6 +551,24 @@ static void lk2nd_boot_label(struct label *label)
 	int ret, i = 0;
 
 	dprintf(INFO, "Trying to boot '%s'\n", label->name);
+
+	if (label->initramfs) {
+		struct filehandle *fileh;
+		ret = fs_open_file(label->initramfs, &fileh);
+		if (ret < 0) {
+			dprintf(INFO, "Failed to open initramfs: %d\n", ret);
+			return;
+		}
+		struct file_stat stat;
+		ret = fs_stat_file(fileh, &stat);
+		if (ret < 0) {
+			dprintf(INFO, "Failed to stat initramfs: %d\n", ret);
+			fs_close_file(fileh);
+			return;
+		}
+		ramdisk_size = stat.size;
+		fs_close_file(fileh);
+	}
 
 	ret = fs_load_file(label->kernel, scratch, scratch_size);
 	if (ret < 0) {
@@ -570,7 +591,7 @@ static void lk2nd_boot_label(struct label *label)
 		kernel_scratch = scratch;
 	}
 
-	choose_addrs(kernel_scratch, &addrs);
+	choose_addrs(kernel_scratch, ramdisk_size, &addrs);
 
 	if (kernel_size > addrs.kernel_max_size) {
 		dprintf(INFO, "Kernel too big: %u > %u\n",
@@ -624,11 +645,10 @@ static void lk2nd_boot_label(struct label *label)
 			dprintf(INFO, "Failed to load the initramfs: %d\n", ret);
 			return;
 		}
-		if ((uint32_t)ret == addrs.ramdisk_max_size) {
-			dprintf(INFO, "Initramfs is too big\n");
+		if ((uint32_t)ret != ramdisk_size) {
+			dprintf(INFO, "Failed to read full initramfs: %d != %u\n", ret, ramdisk_size);
 			return;
 		}
-		ramdisk_size = ret;
 		arch_clean_invalidate_cache_range((addr_t)addrs.ramdisk, ramdisk_size);
 	}
 
