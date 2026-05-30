@@ -24,6 +24,7 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-motorola-surnia.dtb \
 	$(LOCAL_DIR)/msm8916-mtp.dtb \
 	$(LOCAL_DIR)/msm8916-mtp-smb1360.dtb \
+	$(LOCAL_DIR)/msm8916-oppo-a33.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-4.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-5.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-7+12.dtb \
