@@ -476,9 +476,14 @@ extern void boot_linux(void *kernel, unsigned *tags,
 
 #define IS_ARM64(ptr) (ptr->magic_64 == KERNEL64_HDR_MAGIC)
 
-#define MAX_KERNEL_SIZE			(64 * 1024 * 1024)
+#ifndef MAX_BOOT_SIZE
+#define MAX_BOOT_SIZE			(50 * 1024 * 1024)
+#endif
+
 #define MAX_TAGS_SIZE			(2 * 1024 * 1024)
 #define MAX_RAMDISK_SIZE		(16 * 1024 * 1024)
+
+#define MAX_KERNEL_SIZE			(MAX_BOOT_SIZE - MAX_TAGS_SIZE - MAX_RAMDISK_SIZE)
 
 struct load_addrs {
 	void *kernel;
