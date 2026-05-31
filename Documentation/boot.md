@@ -61,6 +61,24 @@ label MyOS
     append earlycon console=ttyMSM0,115200
 ```
 
+### Boot memory layout with extlinux.conf
+
+When booting via `extlinux.conf`, lk2nd needs to choose addresses after the
+kernel to provide the initramfs and devicetree.
+
+The available boot memory is limited by nearby reserved memory regions and
+varies by platform. Platforms can set `LK2ND_BOOT_MEM_SIZE` to adjust the size.
+lk2nd will use:
+- All current platforms: 50 MiB
+
+That memory is shared by the kernel, initramfs, and devicetree. Booting will
+fail if that limit is exceeded. The memory needed by the kernel includes the
+size after self-decompression, not just the on-disk size of the kernel. ARM
+32-bit kernels and older 64-bit kernels don't provide details on how much
+memory they need for self-decompression so lk2nd will place the initramfs and
+devicetree at the end of the boot memory, to give all the remaining memory to
+the kernel to decompress.
+
 ## lk2nd cmdline arguments
 
 lk2nd can read OS cmdline argument and make some decisions while booting it.
