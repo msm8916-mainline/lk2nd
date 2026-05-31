@@ -69,7 +69,8 @@ kernel to provide the initramfs and devicetree.
 The available boot memory is limited by nearby reserved memory regions and
 varies by platform. Platforms can set `LK2ND_BOOT_MEM_SIZE` to adjust the size.
 lk2nd will use:
-- All current platforms: 50 MiB
+- `msm8960`: 128 MiB
+- All other platforms: 50 MiB
 
 That memory is shared by the kernel, initramfs, and devicetree. Booting will
 fail if that limit is exceeded. The memory needed by the kernel includes the
