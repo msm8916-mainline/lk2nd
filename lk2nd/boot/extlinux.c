@@ -476,8 +476,6 @@ extern void boot_linux(void *kernel, unsigned *tags,
 
 #define IS_ARM64(ptr) (ptr->magic_64 == KERNEL64_HDR_MAGIC)
 
-#define LK2ND_BOOT_MEM_SIZE		(50 * 1024 * 1024)
-
 #define MAX_TAGS_SIZE			(2 * 1024 * 1024)
 
 struct load_addrs {
