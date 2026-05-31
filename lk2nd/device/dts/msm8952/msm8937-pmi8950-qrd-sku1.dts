@@ -11,11 +11,6 @@
 };
 
 &lk2nd {
-	/*
-	 * Readboy G500X Tablet
-	 * To build lk1st, use: make TOOLCHAIN_PREFIX=arm-none-eabi- lk1st-msm8952
-	 * (with a qtestsign signature after build)
-	 */
 	model = "Readboy G500X Tablet";
 	compatible = "readboy,g500x";
 
