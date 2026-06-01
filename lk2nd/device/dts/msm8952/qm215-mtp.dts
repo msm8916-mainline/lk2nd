@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_QM215 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	cat-s22flip {
+		model = "Cat S22 Flip (S22FLIP)";
+		compatible = "cat,s22flip";
+
+		// FIXME: lk2nd,dtb-files = "qm215-cat-s22flip";
+
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "cat,s22flip-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_jd9161z_boe_ips_video {
+				compatible = "cat,s22flip-boe-jd9161z";
+			};
+		};
+	};
+};

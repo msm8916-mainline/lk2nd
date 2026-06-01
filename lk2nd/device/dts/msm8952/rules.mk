@@ -27,6 +27,7 @@ ADTBS += \
 	$(LOCAL_DIR)/sdm429w-fossil-hoki.dtb \
 	$(LOCAL_DIR)/sdm439-qrd-2.dtb \
 	$(LOCAL_DIR)/sdm439-xiaomi-olive.dtb \
+	$(LOCAL_DIR)/qm215-mtp.dtb \
 
 DTBS += \
 	$(LOCAL_DIR)/msm8917-huawei-agassi.dtb \
