@@ -12,4 +12,18 @@
 &lk2nd {
 	model = "OnePlus 3";
 	compatible = "oneplus,oneplus3";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		volume-up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&pmic 3 GPIO_ACTIVE_LOW>;
+		};
+
+		volume-down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&pmic 2 GPIO_ACTIVE_LOW>;
+		};
+	};
 };
