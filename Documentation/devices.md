@@ -207,6 +207,7 @@
 
 - LG G5 - h850
 - LG V20 - h990
+- OnePlus 3
 - OnePlus 3T
 - Xiaomi Mi 5 - gemini
 - Xiaomi Mi 5s - capricorn
