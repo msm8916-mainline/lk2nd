@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <lib/fs.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <lk2nd/boot.h>
 
@@ -55,10 +56,10 @@ void lk2nd_print_file_tree(char *root, char *prefix)
 				stat.size / (stat.size > 1024 * 1024 ? 1024*1024 : 1024),
 				(stat.size > 1024 * 1024 ? "MiB" : "KiB"));
 
-		strcat(path, "/");
+		strlcat(path, "/", sizeof(path));
 		if (stat.is_dir) {
-			strcpy(pref, prefix);
-			strcat(pref, (tmp < 0 ? "    " : "|   "));
+			strlcpy(pref, prefix, sizeof(pref));
+			strlcat(pref, (tmp < 0 ? "    " : "|   "), sizeof(pref));
 			lk2nd_print_file_tree(path, pref);
 		}
 		dirent = next;
