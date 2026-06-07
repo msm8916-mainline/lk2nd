@@ -12,6 +12,7 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8937-mtp.dtb \
 	$(LOCAL_DIR)/msm8937-nokia-nd1.dtb \
 	$(LOCAL_DIR)/msm8937-nokia-ple.dtb \
+	$(LOCAL_DIR)/msm8937-pmi8950-qrd-sku1.dtb \
 	$(LOCAL_DIR)/msm8937-xiaomi-land.dtb \
 	$(LOCAL_DIR)/msm8940-huawei-trt-tl10.dtb \
 	$(LOCAL_DIR)/msm8940-mtp.dtb \
