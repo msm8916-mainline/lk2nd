@@ -4,8 +4,8 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <QCOM_ID_MSM8976 0x10001>;
-	qcom,board-id = <QCOM_BOARD_ID_QRD 0x0>;
+	    qcom,msm-id = <QCOM_ID_MSM8976 0x10001>;
+	    qcom,board-id = <QCOM_BOARD_ID_QRD 0x0>;
 
         reserved-memory {
                 #address-cells = <2>;
