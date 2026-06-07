@@ -1,0 +1,60 @@
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	    qcom,msm-id = <QCOM_ID_MSM8976 0x10001>;
+	    qcom,board-id = <QCOM_BOARD_ID_QRD 0x0>;
+
+        reserved-memory {
+                #address-cells = <2>;
+                #size-cells = <2>;
+                ranges;
+
+                lk_region@0 {
+                        linux,reserve-contiguous-region;
+                        linux,reserve-region;
+                        linux,remove-completely;
+                        reg = <0x00 0x8f600000 0x00 0x300000>;
+                        label = "lk_mem";
+                };
+
+                secdbg_region@0 {
+                        linux,reserve-contiguous-region;
+                        linux,reserve-region;
+                        linux,remove-completely;
+                        reg = <0x00 0xa0000000 0x00 0x800000>;
+                        label = "secdbg_mem";
+                };
+
+                klog_region@0 {
+                        linux,reserve-contiguous-region;
+                        linux,reserve-region;
+                        linux,remove-completely;
+                        reg = <0x00 0xa01ff000 0x00 0x201000>;
+                        label = "klog_mem";
+                };
+        };
+
+};
+
+&lk2nd {
+        gts28vewifi {
+                model = "Samsung Galaxy Tab S2 8.0 Wi-Fi (2016)";
+                compatible = "samsung,gts28vewifi";
+
+                lk2nd,match-bootloader = "*T713*";
+                lk2nd,match-panel;
+                lk2nd,dtb-files = "msm8976-gts28vewifi";
+
+                panel {
+                        compatible = "samsung,gts28vewifi-panel", "lk2nd,panel";
+
+                        ss_dsi_panel_S6E3HA2_AMS801HK01_QXGA {
+                                 compatible = "samsung,gts28vewifi-s6e3ha2";
+                        };
+                };
+
+        };
+};
