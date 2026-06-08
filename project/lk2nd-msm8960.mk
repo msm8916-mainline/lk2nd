@@ -7,4 +7,10 @@ DEFINES += ENABLE_KASLRSEED_SUPPORT=1
 # The mmu_section_table doesn't map beyond 0x88000000, which is still plenty.
 LK2ND_BOOT_MEM_SIZE := 0x08000000
 
+# jflte shows display artifacts with the generic 128 MiB boot window.
+# While booting still works, it's safer to keep initramfs/DTB to 64 MiB
+ifeq ($(BOOTLOADER_OUT),samsung-jflte)
+LK2ND_BOOT_MEM_SIZE := 0x04000000
+endif
+
 include lk2nd/project/lk2nd.mk
