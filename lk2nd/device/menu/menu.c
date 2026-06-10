@@ -16,10 +16,13 @@
 #include <lk2nd/util/minmax.h>
 #include <lk2nd/version.h>
 
+#include "../boot/boot.h"
+#include <lk2nd/hw/bdev.h>
 #include "../device.h"
 
 // Defined in app/aboot/aboot.c
 extern void cmd_continue(const char *arg, void *data, unsigned sz);
+extern int boot_linux_from_mmc(void);
 
 #define FONT_WIDTH	(5+1)
 #define FONT_HEIGHT	12
@@ -121,31 +124,118 @@ static uint16_t wait_key(void)
 #define xstr(s) str(s)
 #define str(s) #s
 
-static void opt_continue(void)   { cmd_continue(NULL, NULL, 0); }
-static void opt_reboot(void)     { reboot_device(0); }
-static void opt_recovery(void)
+
+struct menu_option {
+	char *name;
+	unsigned color;
+	void (*action)(const struct menu_option* option);
+	int value;
+};
+void display_menu(struct menu_option menu_options[]);
+
+static void do_android_boot(const struct menu_option* option)
+{
+	boot_linux_from_mmc();
+}
+
+static void opt_continue(const struct menu_option* option)
+{
+	cmd_continue(NULL, NULL, 0);
+}
+static void opt_reboot(const struct menu_option* option)
+{
+	reboot_device(0);
+}
+static void opt_recovery(const struct menu_option* option)
 {
 	extern unsigned boot_into_recovery;
 
 	boot_into_recovery = 1;
 	cmd_continue(NULL, NULL, 0);
 }
-static void opt_bootloader(void) { reboot_device(FASTBOOT_MODE); }
-static void opt_edl(void)        { reboot_device(EMERGENCY_DLOAD); }
-static void opt_shutdown(void)   { shutdown_device(); }
+static void opt_bootloader(const struct menu_option* option) {
+	reboot_device(FASTBOOT_MODE);
+}
+static void opt_edl(const struct menu_option* option) {
+	reboot_device(EMERGENCY_DLOAD);
+}
+static void opt_shutdown(const struct menu_option* option)
+{
+	shutdown_device();
+}
 
-static struct {
-	char *name;
-	unsigned color;
-	void (*action)(void);
-} menu_options[] = {
-	{ "  Reboot  ", GREEN,  opt_reboot },
-	{ " Continue ", WHITE,  opt_continue },
-	{ " Recovery ", ORANGE, opt_recovery },
-	{ "Bootloader", ORANGE, opt_bootloader },
-	{ "    EDL   ", RED,    opt_edl },
-	{ " Shutdown ", RED,    opt_shutdown },
+struct label *multiboot_labels;
+char *multiboot_root;
+
+static void opt_multiboot(const struct menu_option* option)
+{
+	dprintf(INFO, "choiced %d\n", option->value);
+	lk2nd_expand_conf_and_boot_label(
+		&multiboot_labels[option->value], multiboot_root
+	);
+}
+
+static void opt_multiboot_menu(const struct menu_option* option)
+{
+	struct menu_option* boot_menu_options;
+
+	int default_label_idx;
+	int labels_count;
+	int ret;
+	int i;
+
+	lk2nd_bdev_init();
+
+	ret = lk2nd_scan_devices(&multiboot_root, &multiboot_labels, &default_label_idx, &labels_count);
+	if (ret < 0) {
+		labels_count = 0;
+		dprintf(INFO, "getting list failed!\n");
+	}
+	labels_count = labels_count;
+
+	boot_menu_options = calloc(
+		labels_count + 3, sizeof(struct menu_option)
+	);
+	for(i = 0; i < labels_count; i++) {
+		boot_menu_options[i] = (struct menu_option) {
+			strdup(multiboot_labels[i].name), GREEN, opt_multiboot, i
+		};
+	}
+	boot_menu_options[labels_count] = (struct menu_option) {
+		"boot.img", ORANGE, do_android_boot, 0
+	};
+	boot_menu_options[labels_count + 1] = (struct menu_option) {
+		"BACK", RED, NULL, 0
+	};
+	boot_menu_options[labels_count + 2] = (struct menu_option) {
+		NULL, 0, NULL, 0
+	};
+
+	display_menu(boot_menu_options);
+
+	free(multiboot_labels);
+	free(boot_menu_options);
+}
+
+static struct menu_option main_menu_options[] = {
+	{ "  Reboot  ", GREEN,  opt_reboot,         0 },
+	{ "MultiBoot ", GREEN,  opt_multiboot_menu, 0 },
+	{ " Continue ", WHITE,  opt_continue,       0 },
+	{ " Recovery ", ORANGE, opt_recovery,       0 },
+	{ "Bootloader", ORANGE, opt_bootloader,     0 },
+	{ "    EDL   ", RED,    opt_edl,            0 },
+	{ " Shutdown ", RED,    opt_shutdown,       0 },
+	{ NULL,         0,      NULL,               0 },
 };
+
+static unsigned int count_menu_options(struct menu_option menu_options[]) {
+	int idx = 0;
+
+	while(menu_options && menu_options[idx].name) {
+		idx ++;
+	}
+	return idx;
+}
 
 #define fbcon_printf_ln(color, y, incr, x...) \
 	do { \
@@ -161,9 +251,16 @@ static struct {
 
 void display_fastboot_menu(void)
 {
+	while(true) {
+		display_menu(main_menu_options);
+	}
+}
+
+void display_menu(struct menu_option menu_options[])
+{
 	struct fbcon_config *fb = fbcon_display();
 	int y, y_menu, old_scale, incr;
-	unsigned int sel = 0, i;
+	unsigned int sel = 0, i, menu_options_count;
 	bool armv8 = is_scm_armv8_support();
 
 	if (!fb)
@@ -177,6 +274,8 @@ void display_fastboot_menu(void)
 	incr = FONT_HEIGHT * scale_factor;
 
 	y = incr * 2;
+
+	menu_options_count = count_menu_options(menu_options);
 
 	fbcon_clear();
 
@@ -203,7 +302,7 @@ void display_fastboot_menu(void)
 
 	/* Skip lines for the menu */
 	y_menu = y;
-	y += incr * (ARRAY_SIZE(menu_options) + 1);
+	y += incr * (menu_options_count + 1);
 
 	if (lk2nd_dev.single_key) {
 		fbcon_puts_ln(SILVER, y, incr, true, "Short press to navigate.");
@@ -246,8 +345,8 @@ void display_fastboot_menu(void)
 	incr = FONT_HEIGHT * scale_factor;
 	while (true) {
 		y = y_menu;
-		fbcon_clear_msg(y / FONT_HEIGHT, (y / FONT_HEIGHT + ARRAY_SIZE(menu_options) * scale_factor));
-		for (i = 0; i < ARRAY_SIZE(menu_options); ++i) {
+		fbcon_clear_msg(y / FONT_HEIGHT, (y / FONT_HEIGHT + menu_options_count * scale_factor));
+		for (i = 0; i < menu_options_count; ++i) {
 			fbcon_printf_ln(
 				i == sel ? menu_options[i].color : SILVER,
 				y, incr, true, "%c %s %c",
@@ -267,17 +366,18 @@ void display_fastboot_menu(void)
 				y, incr, true, ">> %s <<",
 				menu_options[sel].name
 			);
-			menu_options[sel].action();
-			break;
+			if (menu_options[sel].action)
+				menu_options[sel].action(&menu_options[sel]);
+			return;
 		case KEY_VOLUMEUP:
 			if (sel == 0)
-				sel = ARRAY_SIZE(menu_options) - 1;
+				sel = menu_options_count - 1;
 			else
 				sel--;
 			break;
 		case KEY_VOLUMEDOWN:
 			sel++;
-			if (sel >= ARRAY_SIZE(menu_options))
+			if (sel >= menu_options_count)
 				sel = 0;
 			break;
 		}
