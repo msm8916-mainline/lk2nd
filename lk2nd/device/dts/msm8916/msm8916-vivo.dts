@@ -1,0 +1,94 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <0x01 0x01>;
+};
+
+/*
+ * Since the stock Android version on these devices reports as 4.4, aboot is
+ * only 32-bit, so lk1st is required, along with replacing tz and hyp.
+ *
+ * Build commands:
+ *
+ *   Y13L / Y23L / Y613F (PD1304):
+ *     make TOOLCHAIN_PREFIX=arm-none-eabi- lk1st-msm8916 \
+ *       LK2ND_BUNDLE_DTB=msm8916-vivo.dtb \
+ *       LK2ND_COMPATIBLE=vivo,pd1304 \
+ *       LK2ND_DISPLAY=nt35510s_fwvga_cmd
+ *
+ *   Y927 (PD1410V):
+ *     make TOOLCHAIN_PREFIX=arm-none-eabi- lk1st-msm8916 \
+ *       LK2ND_BUNDLE_DTB=msm8916-vivo.dtb \
+ *       LK2ND_COMPATIBLE=vivo,pd1410v \
+ *       LK2ND_DISPLAY=hx8394a_720p_video
+ *
+ * Touch is enabled by default with EDT on PD1304.
+ * Some touchscreens require changing the compatible property to Goodix -
+ * change the touchscreen-compatible in the PD1304 panel node.
+ */
+
+&lk2nd {
+	pd1304 {
+		model = "Vivo Y13L / Y23L / Y613F";
+		compatible = "vivo,pd1304", "vivo,pd1419";
+
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-vivo-pd1304";
+
+		panel {
+			compatible = "vivo,pd1304-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_nt35510s_fwvga_video{
+				compatible = "mdss,nt35510s-video";
+				touchscreen-compatible = "edt,edt-ft5306";
+			};
+
+			qcom,mdss_dsi_nt35510s_fwvga_cmd {
+				compatible = "mdss,nt35510s";
+				touchscreen-compatible = "edt,edt-ft5306";
+			};
+		};
+
+		regulator-backlight {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 8 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	pd1410v {
+		model = "Vivo Y927 (PD1410V)";
+		compatible = "vivo,pd1410v";
+
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-vivo-pd1410v";
+
+		panel {
+			compatible = "vivo,pd1304-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394a_720p_video {
+				compatible = "vivo,hx8394a-720p";
+			};
+		};
+
+		regulator-lcd-enp {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 97 GPIO_ACTIVE_HIGH>;
+		};
+
+		regulator-lcd-enn {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 98 GPIO_ACTIVE_HIGH>;
+		};
+
+		regulator-backlight {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 8 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};
