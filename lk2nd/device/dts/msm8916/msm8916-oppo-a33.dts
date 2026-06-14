@@ -5,9 +5,9 @@
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8916 0>;
-	qcom,board-id = <0x21010b 5>,
-		<0x22010b 5>,
-		<0x23010b 5>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 0x21, 1) 5>,
+		<QCOM_BOARD_ID(QRD, 0x22, 1) 5>,
+		<QCOM_BOARD_ID(QRD, 0x23, 1) 5>;
 };
 
 &lk2nd {
