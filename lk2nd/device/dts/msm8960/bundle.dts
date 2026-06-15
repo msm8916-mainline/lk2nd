@@ -3,6 +3,25 @@
 #include <lk2nd.dtsi>
 
 &lk2nd {
+	asus-nexus7 {
+		model = "Asus Nexus 7 (flo)";
+		compatible = "asus,nexus7-flo";
+		lk2nd,match-bootloader = "FLO-*";
+		lk2nd,dtb-files = "apq8064-asus-nexus7-flo";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&pmic 37 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
 	samsung-serrano {
 		model = "Samsung Galaxy S4 Mini (GT-I9195)";
 		compatible = "samsung,serranolte", "samsung,serrano";

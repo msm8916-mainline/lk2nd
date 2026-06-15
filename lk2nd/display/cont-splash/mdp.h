@@ -4,9 +4,11 @@
 
 #if MDP3
 #include <mdp3.h>
+#include <mipi_dsi.h>
 #elif MDP4
 #include <dev/lcdc.h>
 #include <mdp4.h>
+#include <mipi_dsi.h>
 #elif MDP5
 #include <mdp5.h>
 #else

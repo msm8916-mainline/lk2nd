@@ -3076,10 +3076,22 @@ mmc_erase_card(unsigned long long data_addr, unsigned long long size)
 		return MMC_BOOT_E_FAILURE;
 	}
 
-	if (size % erase_grp_size) {
-		dprintf(CRITICAL, "Overflow beyond ERASE_GROUP_SIZE:%llu\n",
-			(size % erase_grp_size));
-
+	if ((data_addr / 512) % erase_grp_size || size % erase_grp_size) {
+		// erase request doesn't fall cleanly on the erase_grp_size
+		// boundary. if we blindly issue this request we might erase data
+		// in other partitions.
+		// this has been confirmed to occur when erasing the virtual
+		// "boot" partition that lk2nd splits out.
+		size = MIN(size, 10240); // don't erase more than 5MiB
+		while (size) {
+			loop_count = MIN(size, sizeof(out) / 512);
+			mmc_ret = mmc_write(data_addr, loop_count * 512, out);
+			if (mmc_ret != MMC_BOOT_E_SUCCESS)
+				return mmc_ret;
+			data_addr += loop_count * 512;
+			size -= loop_count;
+		}
+		return MMC_BOOT_E_SUCCESS;
 	}
 	loop_count = (size / erase_grp_size);
 	/*

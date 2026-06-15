@@ -90,13 +90,16 @@
 
 - Alcatel Idol 4 (6055*)
 - BQ X5 Plus (Longcheer L9360)
+- Cat S22 Flip (S22FLIP)
 - Fossil Gen 6 (hoki) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - General Mobile GM 5 Plus (shamrock)
 - HMD Global Nokia 4.2 (panther) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - HMD Global Nokia 5 (nd1)
 - HMD Global Nokia 6 (ple)
+- Huawei Enjoy 7 Plus (trt-tl10)
 - Huawei Honor 7C (aum-l41) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8937-huawei-aum.dts`)
 - Huawei MediaPad T3 10 (ags- l09/l03/w09) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8917-huawei-agassi.dts`)
+- Huawei MediaPad T3 8 (kob- l09/l09chn/w09/w09chn) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8917-huawei-kobe.dts`)
 - Leeco s2
 - Lenovo K5 Play (l38011)
 - Lenovo Tab M10 HD (TB-X505X) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
@@ -193,7 +196,7 @@
 - Motorola Moto G 2014 - titan
 - Motorola Moto G 2014 LTE - thea
 - Samsung Galaxy Grand 2 - SM-G7102
-- Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T532, SM-T535
+- Samsung Galaxy Tab 4 10.1 (2014) - SM-T530, SM-T531, SM-T532, SM-T535
 - Samsung Galaxy Tab 4 8.0 (2014) - SM-T330, SM-T330NU, SM-T331
 - Sony Xperia M2 - eagle (quirky - see comment in `lk2nd/device/dts/msm8226/msm8926-v2-720p-mtp.dts`)
 
@@ -205,6 +208,7 @@
 
 - LG G5 - h850
 - LG V20 - h990
+- OnePlus 3
 - OnePlus 3T
 - Xiaomi Mi 5 - gemini
 - Xiaomi Mi 5s - capricorn
@@ -214,6 +218,7 @@
 
 ### lk2nd-msm8960
 
+- Asus Nexus 7 (flo)
 - Samsung Galaxy Ace 3 LTE (GT-S7275R) (display refresh doesn't work)
 - Samsung Galaxy Express (SGH-I437)
 - Samsung Galaxy S4 Mini (GT-I9195)

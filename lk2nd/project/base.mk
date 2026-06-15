@@ -33,6 +33,10 @@ MODULES += \
 	lk2nd/smp/spin-table \
 	lk2nd/version \
 
+ifneq ($(filter ENABLE_KASLRSEED_SUPPORT=1,$(DEFINES)),)
+MODULES += lk2nd/rng-seed
+endif
+
 # Disable SMP spin table if unsupported (without throwing errors)
 LK2ND_SMP_OPTIONAL := 1
 

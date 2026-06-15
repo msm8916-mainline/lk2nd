@@ -1,0 +1,551 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Copyright (c) 2026 FIXME
+// Generated with linux-mdss-dsi-panel-driver-generator from vendor device tree:
+//   Copyright (c) 2014, The Linux Foundation. All rights reserved. (FIXME)
+
+#ifndef _PANEL_TRULY_QHD_VIDEO_H_
+#define _PANEL_TRULY_QHD_VIDEO_H_
+
+#include <mipi_dsi.h>
+#include <panel_display.h>
+#include <panel.h>
+#include <string.h>
+
+static struct panel_config truly_qhd_video_panel_data = {
+	.panel_node_id = "qcom,mdss_dsi_truly_qhd_video",
+	.panel_controller = "dsi:0:",
+	.panel_compatible = "qcom,mdss-dsi-panel",
+	.panel_type = 0,
+	.panel_destination = "DISPLAY_1",
+	/* .panel_orientation not supported yet */
+	.panel_framerate = 60,
+	.panel_lp11_init = 1,
+	.panel_init_delay = 1,
+};
+
+static struct panel_resolution truly_qhd_video_panel_res = {
+	.panel_width = 540,
+	.panel_height = 960,
+	.hfront_porch = 130,
+	.hback_porch = 30,
+	.hpulse_width = 2,
+	.hsync_skew = 0,
+	.vfront_porch = 56,
+	.vback_porch = 16,
+	.vpulse_width = 2,
+	/* Borders not supported yet */
+};
+
+static struct color_info truly_qhd_video_color = {
+	.color_format = 24,
+	.color_order = DSI_RGB_SWAP_RGB,
+	.underflow_color = 0xff,
+	/* Borders and pixel packing not supported yet */
+};
+
+static char truly_qhd_video_on_cmd_0[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_1[] = {
+	0x04, 0x00, 0x29, 0xc0, 0xff, 0x96, 0x05, 0x01
+};
+static char truly_qhd_video_on_cmd_2[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x80, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_3[] = {
+	0x03, 0x00, 0x29, 0xc0, 0xff, 0x96, 0x05, 0xff
+};
+static char truly_qhd_video_on_cmd_4[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x90, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_5[] = {
+	0x08, 0x00, 0x29, 0xc0, 0xc5, 0x96, 0x86, 0x06,
+	0x33, 0x33, 0x33, 0x31
+};
+static char truly_qhd_video_on_cmd_6[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x92, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_7[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xc5, 0x06, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_8[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_9[] = {
+	0x03, 0x00, 0x29, 0xc0, 0xd8, 0xaf, 0xaf, 0xff
+};
+static char truly_qhd_video_on_cmd_10[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xb2, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_11[] = {
+	0x05, 0x00, 0x29, 0xc0, 0xf5, 0x15, 0x00, 0x15,
+	0x00, 0xff, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_12[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x93, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_13[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xc5, 0x03, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_14[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xb1, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_15[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xc5, 0x28, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_16[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xb4, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_17[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xc0, 0x50, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_18[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xc5, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_19[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xb0, 0x03, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_20[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xc0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_21[] = {
+	0x08, 0x00, 0x29, 0xc0, 0xc5, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00
+};
+static char truly_qhd_video_on_cmd_22[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x80, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_23[] = {
+	0x03, 0x00, 0x29, 0xc0, 0xc1, 0x36, 0x66, 0xff
+};
+static char truly_qhd_video_on_cmd_24[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x89, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_25[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xc0, 0x01, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_26[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x80, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_27[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xc4, 0x9c, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_28[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xc7, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_29[] = {
+	0x04, 0x00, 0x29, 0xc0, 0xcf, 0x80, 0x00, 0x02
+};
+static char truly_qhd_video_on_cmd_30[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xa0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_31[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xc1, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_32[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xc0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_33[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xcf, 0x3d, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_34[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xc7, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_35[] = {
+	0x04, 0x00, 0x29, 0xc0, 0xcf, 0x80, 0x00, 0x05
+};
+static char truly_qhd_video_on_cmd_36[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xc0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_37[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xc5, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_38[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x83, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_39[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xb2, 0x80, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_40[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xb5, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_41[] = {
+	0x02, 0x00, 0x29, 0xc0, 0xc0, 0x18, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_42[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_43[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_44[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_45[] = {
+	0x22, 0x00, 0x29, 0xc0, 0xec, 0x40, 0x56, 0x33,
+	0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
+	0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
+	0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
+	0x44, 0x24, 0x41, 0x44, 0x24, 0x02, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_46[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_47[] = {
+	0x22, 0x00, 0x29, 0xc0, 0xed, 0x40, 0x44, 0x44,
+	0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
+	0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
+	0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
+	0x44, 0x44, 0x44, 0x44, 0x24, 0x02, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_48[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_49[] = {
+	0x22, 0x00, 0x29, 0xc0, 0xee, 0x61, 0x88, 0x56,
+	0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
+	0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
+	0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44,
+	0x33, 0x13, 0x41, 0x44, 0x44, 0x04, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_50[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_51[] = {
+	0x11, 0x00, 0x29, 0xc0, 0xe1, 0x00, 0x0c, 0x11,
+	0x0e, 0x07, 0x0e, 0x08, 0x05, 0x0c, 0x0e, 0x0a,
+	0x00, 0x06, 0x0e, 0x06, 0x00, 0xff, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_52[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_53[] = {
+	0x11, 0x00, 0x29, 0xc0, 0xe2, 0x00, 0x0c, 0x11,
+	0x0e, 0x07, 0x0e, 0x08, 0x05, 0x0c, 0x0e, 0x0a,
+	0x00, 0x06, 0x0e, 0x06, 0x00, 0xff, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_54[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x80, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_55[] = {
+	0x0d, 0x00, 0x29, 0xc0, 0xce, 0x8b, 0x03, 0x28,
+	0x8a, 0x03, 0x28, 0x89, 0x03, 0x28, 0x88, 0x03,
+	0x28, 0xff, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_56[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x90, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_57[] = {
+	0x0f, 0x00, 0x29, 0xc0, 0xce, 0xf0, 0x00, 0x00,
+	0xf0, 0x00, 0x00, 0xf0, 0x00, 0x00, 0xf0, 0x00,
+	0x00, 0x00, 0x00, 0xff
+};
+static char truly_qhd_video_on_cmd_58[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xa0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_59[] = {
+	0x0f, 0x00, 0x29, 0xc0, 0xce, 0x38, 0x07, 0x03,
+	0xc0, 0x00, 0x18, 0x00, 0x38, 0x06, 0x03, 0xc1,
+	0x00, 0x18, 0x00, 0xff
+};
+static char truly_qhd_video_on_cmd_60[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xb0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_61[] = {
+	0x0f, 0x00, 0x29, 0xc0, 0xce, 0x38, 0x05, 0x03,
+	0xc2, 0x00, 0x18, 0x00, 0x38, 0x04, 0x03, 0xc3,
+	0x00, 0x18, 0x00, 0xff
+};
+static char truly_qhd_video_on_cmd_62[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xc0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_63[] = {
+	0x0f, 0x00, 0x29, 0xc0, 0xce, 0x38, 0x03, 0x03,
+	0xc4, 0x00, 0x18, 0x00, 0x38, 0x02, 0x03, 0xc5,
+	0x00, 0x18, 0x00, 0xff
+};
+static char truly_qhd_video_on_cmd_64[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xd0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_65[] = {
+	0x0f, 0x00, 0x29, 0xc0, 0xce, 0x38, 0x01, 0x03,
+	0xc6, 0x00, 0x18, 0x00, 0x38, 0x00, 0x03, 0xc7,
+	0x00, 0x18, 0x00, 0xff
+};
+static char truly_qhd_video_on_cmd_66[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xc0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_67[] = {
+	0x10, 0x00, 0x29, 0xc0, 0xcb, 0x04, 0x04, 0x04,
+	0x04, 0x00, 0x04, 0x00, 0x04, 0x00, 0x04, 0x00,
+	0x04, 0x04, 0x04, 0x00
+};
+static char truly_qhd_video_on_cmd_68[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xd0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_69[] = {
+	0x10, 0x00, 0x29, 0xc0, 0xcb, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x04, 0x04, 0x04, 0x04, 0x00, 0x04,
+	0x00, 0x04, 0x00, 0x04
+};
+static char truly_qhd_video_on_cmd_70[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xe0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_71[] = {
+	0x0b, 0x00, 0x29, 0xc0, 0xcb, 0x00, 0x04, 0x04,
+	0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff
+};
+static char truly_qhd_video_on_cmd_72[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xf0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_73[] = {
+	0x0b, 0x00, 0x29, 0xc0, 0xcb, 0x00, 0xcc, 0xcc,
+	0x00, 0x00, 0x00, 0xcc, 0xcc, 0x0f, 0x00, 0xff
+};
+static char truly_qhd_video_on_cmd_74[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x80, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_75[] = {
+	0x0b, 0x00, 0x29, 0xc0, 0xcc, 0x26, 0x25, 0x21,
+	0x22, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x10, 0xff
+};
+static char truly_qhd_video_on_cmd_76[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x90, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_77[] = {
+	0x10, 0x00, 0x29, 0xc0, 0xcc, 0x00, 0x0e, 0x02,
+	0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x26,
+	0x25, 0x21, 0x22, 0x00
+};
+static char truly_qhd_video_on_cmd_78[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xa0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_79[] = {
+	0x10, 0x00, 0x29, 0xc0, 0xcc, 0x0b, 0x00, 0x09,
+	0x00, 0x0f, 0x00, 0x0d, 0x01, 0x03, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00
+};
+static char truly_qhd_video_on_cmd_80[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xb0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_81[] = {
+	0x0b, 0x00, 0x29, 0xc0, 0xcc, 0x25, 0x26, 0x21,
+	0x22, 0x00, 0x0d, 0x00, 0x0f, 0x00, 0x09, 0xff
+};
+static char truly_qhd_video_on_cmd_82[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xc0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_83[] = {
+	0x10, 0x00, 0x29, 0xc0, 0xcc, 0x00, 0x0b, 0x03,
+	0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x25,
+	0x26, 0x21, 0x22, 0x00
+};
+static char truly_qhd_video_on_cmd_84[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0xd0, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_85[] = {
+	0x10, 0x00, 0x29, 0xc0, 0xcc, 0x0e, 0x00, 0x10,
+	0x00, 0x0a, 0x00, 0x0c, 0x04, 0x02, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00
+};
+static char truly_qhd_video_on_cmd_86[] = {
+	0x02, 0x00, 0x29, 0xc0, 0x00, 0x00, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_87[] = {
+	0x04, 0x00, 0x29, 0xc0, 0xff, 0xff, 0xff, 0xff
+};
+static char truly_qhd_video_on_cmd_88[] = {
+	0x11, 0x00, 0x05, 0x80
+};
+static char truly_qhd_video_on_cmd_89[] = {
+	0x29, 0x00, 0x05, 0x80
+};
+static char truly_qhd_video_on_cmd_90[] = {
+	0x53, 0x2c, 0x15, 0x80
+};
+static char truly_qhd_video_on_cmd_91[] = {
+	0x51, 0x50, 0x15, 0x80
+};
+
+static struct mipi_dsi_cmd truly_qhd_video_on_command[] = {
+	{ sizeof(truly_qhd_video_on_cmd_0), truly_qhd_video_on_cmd_0, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_1), truly_qhd_video_on_cmd_1, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_2), truly_qhd_video_on_cmd_2, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_3), truly_qhd_video_on_cmd_3, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_4), truly_qhd_video_on_cmd_4, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_5), truly_qhd_video_on_cmd_5, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_6), truly_qhd_video_on_cmd_6, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_7), truly_qhd_video_on_cmd_7, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_8), truly_qhd_video_on_cmd_8, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_9), truly_qhd_video_on_cmd_9, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_10), truly_qhd_video_on_cmd_10, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_11), truly_qhd_video_on_cmd_11, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_12), truly_qhd_video_on_cmd_12, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_13), truly_qhd_video_on_cmd_13, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_14), truly_qhd_video_on_cmd_14, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_15), truly_qhd_video_on_cmd_15, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_16), truly_qhd_video_on_cmd_16, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_17), truly_qhd_video_on_cmd_17, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_18), truly_qhd_video_on_cmd_18, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_19), truly_qhd_video_on_cmd_19, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_20), truly_qhd_video_on_cmd_20, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_21), truly_qhd_video_on_cmd_21, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_22), truly_qhd_video_on_cmd_22, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_23), truly_qhd_video_on_cmd_23, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_24), truly_qhd_video_on_cmd_24, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_25), truly_qhd_video_on_cmd_25, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_26), truly_qhd_video_on_cmd_26, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_27), truly_qhd_video_on_cmd_27, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_28), truly_qhd_video_on_cmd_28, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_29), truly_qhd_video_on_cmd_29, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_30), truly_qhd_video_on_cmd_30, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_31), truly_qhd_video_on_cmd_31, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_32), truly_qhd_video_on_cmd_32, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_33), truly_qhd_video_on_cmd_33, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_34), truly_qhd_video_on_cmd_34, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_35), truly_qhd_video_on_cmd_35, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_36), truly_qhd_video_on_cmd_36, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_37), truly_qhd_video_on_cmd_37, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_38), truly_qhd_video_on_cmd_38, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_39), truly_qhd_video_on_cmd_39, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_40), truly_qhd_video_on_cmd_40, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_41), truly_qhd_video_on_cmd_41, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_42), truly_qhd_video_on_cmd_42, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_43), truly_qhd_video_on_cmd_43, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_44), truly_qhd_video_on_cmd_44, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_45), truly_qhd_video_on_cmd_45, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_46), truly_qhd_video_on_cmd_46, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_47), truly_qhd_video_on_cmd_47, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_48), truly_qhd_video_on_cmd_48, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_49), truly_qhd_video_on_cmd_49, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_50), truly_qhd_video_on_cmd_50, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_51), truly_qhd_video_on_cmd_51, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_52), truly_qhd_video_on_cmd_52, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_53), truly_qhd_video_on_cmd_53, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_54), truly_qhd_video_on_cmd_54, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_55), truly_qhd_video_on_cmd_55, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_56), truly_qhd_video_on_cmd_56, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_57), truly_qhd_video_on_cmd_57, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_58), truly_qhd_video_on_cmd_58, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_59), truly_qhd_video_on_cmd_59, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_60), truly_qhd_video_on_cmd_60, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_61), truly_qhd_video_on_cmd_61, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_62), truly_qhd_video_on_cmd_62, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_63), truly_qhd_video_on_cmd_63, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_64), truly_qhd_video_on_cmd_64, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_65), truly_qhd_video_on_cmd_65, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_66), truly_qhd_video_on_cmd_66, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_67), truly_qhd_video_on_cmd_67, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_68), truly_qhd_video_on_cmd_68, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_69), truly_qhd_video_on_cmd_69, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_70), truly_qhd_video_on_cmd_70, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_71), truly_qhd_video_on_cmd_71, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_72), truly_qhd_video_on_cmd_72, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_73), truly_qhd_video_on_cmd_73, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_74), truly_qhd_video_on_cmd_74, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_75), truly_qhd_video_on_cmd_75, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_76), truly_qhd_video_on_cmd_76, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_77), truly_qhd_video_on_cmd_77, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_78), truly_qhd_video_on_cmd_78, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_79), truly_qhd_video_on_cmd_79, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_80), truly_qhd_video_on_cmd_80, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_81), truly_qhd_video_on_cmd_81, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_82), truly_qhd_video_on_cmd_82, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_83), truly_qhd_video_on_cmd_83, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_84), truly_qhd_video_on_cmd_84, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_85), truly_qhd_video_on_cmd_85, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_86), truly_qhd_video_on_cmd_86, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_87), truly_qhd_video_on_cmd_87, 0 },
+	{ sizeof(truly_qhd_video_on_cmd_88), truly_qhd_video_on_cmd_88, 120 },
+	{ sizeof(truly_qhd_video_on_cmd_89), truly_qhd_video_on_cmd_89, 10 },
+	{ sizeof(truly_qhd_video_on_cmd_90), truly_qhd_video_on_cmd_90, 10 },
+	{ sizeof(truly_qhd_video_on_cmd_91), truly_qhd_video_on_cmd_91, 10 },
+};
+
+static char truly_qhd_video_off_cmd_0[] = {
+	0x28, 0x00, 0x05, 0x80
+};
+static char truly_qhd_video_off_cmd_1[] = {
+	0x10, 0x00, 0x05, 0x80
+};
+
+static struct mipi_dsi_cmd truly_qhd_video_off_command[] = {
+	{ sizeof(truly_qhd_video_off_cmd_0), truly_qhd_video_off_cmd_0, 150 },
+	{ sizeof(truly_qhd_video_off_cmd_1), truly_qhd_video_off_cmd_1, 150 },
+};
+
+static struct command_state truly_qhd_video_state = {
+	.oncommand_state = 0,
+	.offcommand_state = 1,
+};
+
+static struct commandpanel_info truly_qhd_video_command_panel = {
+	/* Unused, this is a video mode panel */
+};
+
+static struct videopanel_info truly_qhd_video_video_panel = {
+	.hsync_pulse = 1,
+	.hfp_power_mode = 1,
+	.hbp_power_mode = 0,
+	.hsa_power_mode = 0,
+	.bllp_eof_power_mode = 1,
+	.bllp_power_mode = 1,
+	.traffic_mode = 2,
+	/* This is bllp_eof_power_mode and bllp_power_mode combined */
+	.bllp_eof_power = 1 << 3 | 1 << 0,
+};
+
+static struct lane_configuration truly_qhd_video_lane_config = {
+	.dsi_lanes = 2,
+	.dsi_lanemap = 0,
+	.lane0_state = 1,
+	.lane1_state = 1,
+	.lane2_state = 0,
+	.lane3_state = 0,
+	.force_clk_lane_hs = 0,
+};
+
+static const uint32_t truly_qhd_video_timings[] = {
+	0x7d, 0x25, 0x1d, 0x00, 0x37, 0x33, 0x22, 0x27, 0x1e, 0x03, 0x04, 0x00
+};
+
+static struct panel_timing truly_qhd_video_timing_info = {
+	.tclk_post = 0x20,
+	.tclk_pre = 0x2c,
+};
+
+static struct panel_reset_sequence truly_qhd_video_reset_seq = {
+	.pin_state = { 1, 0, 1 },
+	.sleep = { 1, 1, 6 },
+	.pin_direction = 2,
+};
+
+static struct backlight truly_qhd_video_backlight = {
+	.bl_interface_type = BL_DCS,
+	.bl_min_level = 1,
+	.bl_max_level = 255,
+};
+
+static inline void panel_truly_qhd_video_select(struct panel_struct *panel,
+						struct msm_panel_info *pinfo,
+						struct mdss_dsi_phy_ctrl *phy_db)
+{
+	panel->paneldata = &truly_qhd_video_panel_data;
+	panel->panelres = &truly_qhd_video_panel_res;
+	panel->color = &truly_qhd_video_color;
+	panel->videopanel = &truly_qhd_video_video_panel;
+	panel->commandpanel = &truly_qhd_video_command_panel;
+	panel->state = &truly_qhd_video_state;
+	panel->laneconfig = &truly_qhd_video_lane_config;
+	panel->paneltiminginfo = &truly_qhd_video_timing_info;
+	panel->panelresetseq = &truly_qhd_video_reset_seq;
+	panel->backlightinfo = &truly_qhd_video_backlight;
+	pinfo->mipi.panel_on_cmds = truly_qhd_video_on_command;
+	pinfo->mipi.panel_off_cmds = truly_qhd_video_off_command;
+	pinfo->mipi.num_of_panel_on_cmds = ARRAY_SIZE(truly_qhd_video_on_command);
+	pinfo->mipi.num_of_panel_off_cmds = ARRAY_SIZE(truly_qhd_video_off_command);
+	memcpy(phy_db->timing, truly_qhd_video_timings, TIMING_SIZE);
+	phy_db->regulator_mode = DSI_PHY_REGULATOR_DCDC_MODE;
+}
+
+#endif /* _PANEL_TRULY_QHD_VIDEO_H_ */
