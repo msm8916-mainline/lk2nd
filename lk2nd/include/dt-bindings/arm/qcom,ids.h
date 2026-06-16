@@ -222,6 +222,7 @@
 #define QCOM_BOARD_ID(a, major, minor) \
 	(((major & 0xff) << 16) | ((minor & 0xff) << 8) | QCOM_BOARD_ID_##a)
 
+#define QCOM_BOARD_ID_CDP			1
 #define QCOM_BOARD_ID_MTP			8
 #define QCOM_BOARD_ID_DRAGONBOARD		10
 #define QCOM_BOARD_ID_QRD			11
