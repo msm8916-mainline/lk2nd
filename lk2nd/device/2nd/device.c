@@ -9,7 +9,7 @@
 
 static void lk2nd_device2nd_update_serialno(const char *serialno)
 {
-	extern char sn_buf[13]; /* aboot.c */
+	extern char sn_buf[MAX_RSP_SIZE]; /* aboot.c */
 
 	if (serialno)
 		strlcpy(sn_buf, serialno, sizeof(sn_buf));
