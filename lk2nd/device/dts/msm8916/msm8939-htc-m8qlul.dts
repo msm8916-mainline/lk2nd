@@ -14,7 +14,7 @@
 	qcom,msm-id = <382 0x10000>;
 	htc,project-id = <382 0x10000>;
 	htc,hw-id = <0 0>, <1 0>, <2 0>, <128 0>;
-	qcom,board-id = <1 0>;
+	qcom,board-id = <QCOM_BOARD_ID_CDP 0>;
 };
 
 &lk2nd {
