@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8937 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 0>;
+};
+
+&lk2nd {
+	model = "Medion Lifetab P10610 (Malata)";
+	compatible = "medion,malata";
+
+	lk2nd,dtb-files = "msm8937-medion-malata";
+
+	lk2nd,match-panel;
+
+	panel {
+		compatible = "medion,malata-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_malata_b101uan08_1200_1900_video {
+			compatible = "medion,gama-wuxga";
+		};
+	};
+};
