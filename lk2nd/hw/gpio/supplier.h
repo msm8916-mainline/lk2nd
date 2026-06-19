@@ -14,6 +14,7 @@
 
 #define PMIC_FLAGS_VIN_SEL(x)		BITS_SHIFT(num, 26, 24)
 #define PMIC_NON_DEFAULT_VIN_SEL	BIT(27)
+#define PMIC_FLAGS_INVERTED		BIT(28)
 
 /* tlmm.c */
 int lk2nd_gpio_tlmm_config(uint32_t num, int flags);

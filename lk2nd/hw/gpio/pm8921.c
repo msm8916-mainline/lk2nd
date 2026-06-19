@@ -18,6 +18,7 @@ int lk2nd_gpio_pmic_config(uint32_t num, int flags)
 		.function	= !!(flags & GPIOL_FLAGS_ASSERTED),
 		.vin_sel	= PMIC_FLAGS_VIN_SEL(flags),
 		.out_strength	= clamp(GPIOL_CONF_DRVSTR(flags), 0, 3),
+		.inv_int_pol	= !!(flags & PMIC_FLAGS_INVERTED),
 	};
 
 	if (flags & GPIO_PULL_UP)
