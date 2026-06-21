@@ -1,0 +1,161 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_CDP 1>;
+};
+
+/*
+ * These are devices released by vivo in 2014-2015.
+ * Their common feature is that they use the CDP, and the board-id is <0x01 0x01>.
+ *
+ * These devices are quirky devices.
+ * Since the stock Android version on this device reports as 4.4.4, aboot is only 32-bit,
+ * so lk1st is required, along with replacing tz and hyp.
+ */
+
+&lk2nd {
+	vivo-pd1304 {
+		model = "Vivo Y13L / Y613F / Y923";
+		compatible = "vivo,pd1304";
+
+		/*
+		 * Build lk1st for pd1304:
+		 * make TOOLCHAIN_PREFIX=arm-none-eabi- lk1st-msm8916 \
+		 *     LK2ND_DISPLAY=nt35510s_fwvga_cmd \
+		 *     LK2ND_BUNDLE_DTB=msm8916-vivo-cdp-1.dtb
+		 *     LK2ND_COMPATIBLE=vivo,pd1304
+		 */
+
+		lk2nd,dtb-files = "msm8916-vivo-pd1304";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "vivo,pd1304-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_nt35510s_fwvga_video{
+				compatible = "mdss,nt35510s-video";
+				touchscreen-compatible = "edt,edt-ft5306";
+			};
+
+			qcom,mdss_dsi_nt35510s_fwvga_cmd {
+				compatible = "mdss,nt35510s";
+				touchscreen-compatible = "edt,edt-ft5306";
+			};
+		};
+
+		regulator-backlight {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 8 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	vivo-pd1403{
+		model = "Vivo Y28L / Y628 / Y928";
+		compatible = "vivo,pd1403";
+
+		/*
+		 * Build lk1st for pd1403:
+		 * make TOOLCHAIN_PREFIX=arm-none-eabi- lk1st-msm8916 \
+		 *     LK2ND_DISPLAY=hx8389b_qhd_video \
+		 *     LK2ND_BUNDLE_DTB=msm8916-vivo-cdp-1.dtb \
+		 *     LK2ND_COMPATIBLE=vivo,pd1403
+		 */
+
+		lk2nd,dtb-files = "msm8916-vivo-pd1403";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "vivo,pd1403-panel", "lk2nd,panel";
+			
+			qcom,mdss_dsi_hx8389b_qhd_video {
+				compatible = "mdss,hx8389b";
+			};
+		};
+
+		regulator-backlight {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 8 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	vivo-pd1410 {
+		model = "Vivo Y27L / Y627 / Y927";
+		compatible = "vivo,pd1410";
+
+		/*
+		 * Build lk1st for pd1410:
+		 * make TOOLCHAIN_PREFIX=arm-none-eabi- lk1st-msm8916 \
+		 *     LK2ND_DISPLAY=hx8394a_720p_video \
+		 *     LK2ND_BUNDLE_DTB=msm8916-vivo-cdp-1.dtb \
+		 *     LK2ND_COMPATIBLE=vivo,pd1410
+		 */
+
+		lk2nd,dtb-files = "msm8916-vivo-pd1410";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "vivo,pd1410-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394a_720p_video {
+				compatible = "vivo,hx8394a-720p";
+			};
+		};
+
+		regulator-lcd-enp {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 97 GPIO_ACTIVE_HIGH>;
+		};
+
+		regulator-lcd-enn {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 98 GPIO_ACTIVE_HIGH>;
+		};
+
+		regulator-backlight {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 8 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	vivo-pd1419 {
+		model = "Vivo Y23L / Y623 / Y923";
+		compatible = "vivo,pd1419";
+
+		/*
+		 * This device has two panels: nt35510s_fwvga_cmd or orise8012a_fwvga_cmd.
+		 * Replace LK2ND_DISPLAY according to the panel.
+		 *
+		 * Build lk1st for pd1419:
+		 * make TOOLCHAIN_PREFIX=arm-none-eabi- lk1st-msm8916 \
+		 *     LK2ND_DISPLAY=nt35510s_fwvga_cmd \
+		 *     LK2ND_BUNDLE_DTB=msm8916-vivo-cdp-1.dtb \
+		 *     LK2ND_COMPATIBLE=vivo,pd1419
+		 */
+
+		lk2nd,dtb-files = "msm8916-vivo-pd1419";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "vivo,pd1419-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_nt35510s_fwvga_cmd {
+				compatible = "mdss,nt35510s";
+				touchscreen-compatible = "goodix,gt928";
+			};
+
+			qcom,mdss_dsi_orise8012a_fwvga_cmd {
+			    compatible = "mdss,orise8012a";
+			    touchscreen-compatible = "goodix,gt928";
+			};
+		};
+
+		regulator-backlight {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 8 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};
