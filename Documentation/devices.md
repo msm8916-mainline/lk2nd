@@ -56,8 +56,11 @@
 - Samsung Galaxy Tab A 8.0 (2015) - SM-T350, SM-T355, SM-T355Y, SM-T357W
 - Samsung Galaxy Tab A 9.7 (2015) - SM-T550, SM-T555
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
-- Vivo Y13L / Y613F / Y23L (2015) - PD1304CL , PD1304CF , PD1419L (use lk1st quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-vivo-pd1304.dts`)
+- Vivo Y13L / Y613f / Y913 - PD1304CL, PD1304CF, PD1304CV (use lk1st quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-vivo-cdp-1.dts`)
+- Vivo Y23L / Y623 / Y923 - PD1419L, PD1419F, PD1419V (use lk1st quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-vivo-cdp-1.dts`)
 - Vivo Y21L
+- Vivo Y27L / Y627 / Y927 - PD1410L, PD1410F, PD1410V (use lk1st quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-vivo-cdp-1.dts`)
+- Vivo Y28L / Y628 / Y928 - PD1403L, PD1403F, PD1403V (use lk1st quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-vivo-cdp-1.dts`)
 - Vivo Y31 (2015) - pd1505
 - Vivo Y31A (2016) - pd1505f
 - Vivo Y51L (2015) - pd1510
