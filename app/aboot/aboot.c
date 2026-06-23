@@ -4672,7 +4672,8 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 		exit_menu_keys_detection();
 #endif
 #if WITH_LK2ND_BOOT
-		lk2nd_boot();
+		if (!boot_into_recovery)
+			lk2nd_boot();
 #endif
 		boot_linux_from_mmc();
 	}
