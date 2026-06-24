@@ -15,6 +15,7 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8953-oppo-r9s.dtb \
 	$(LOCAL_DIR)/msm8953-qrd.dtb \
 	$(LOCAL_DIR)/msm8953-qrd-sku3.dtb \
+	$(LOCAL_DIR)/msm8953-wingtech-wt89536.dtb \
 	$(LOCAL_DIR)/msm8953-xiaomi-common.dtb \
 	$(LOCAL_DIR)/msm8953-xiaomi-daisy.dtb \
 	$(LOCAL_DIR)/msm8953-xiaomi-markw.dtb \
