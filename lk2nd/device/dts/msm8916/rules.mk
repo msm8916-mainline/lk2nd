@@ -47,5 +47,6 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8939-qrd-skuk.dtb \
 	$(LOCAL_DIR)/msm8939-qrd-wt82918.dtb \
 	$(LOCAL_DIR)/msm8939-qrd-wt82918hd.dtb \
+	$(LOCAL_DIR)/msm8916-qrd-wt86621.dtb \
 	$(LOCAL_DIR)/msm8939-samsung.dtb \
 	$(LOCAL_DIR)/msm8939-xiaomi-ido.dtb \
