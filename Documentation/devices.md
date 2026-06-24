@@ -139,6 +139,7 @@
 
 - Asus Zenfone 3 ZE520KL/ZE552KL (zenfone3)
 - Billion Capture+ (rimob)
+- CMCC N2 / YU Yureka 2 (wt89536)
 - Fairphone 3
 - Huawei Maimang 5 / Nova Plus / G9 (Plus) (milan)
 - Huawei Nova (cannes)
