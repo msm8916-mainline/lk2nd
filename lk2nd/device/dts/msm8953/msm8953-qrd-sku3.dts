@@ -35,4 +35,25 @@
 			};
 		};
 	};
+
+	360-qk1505-a02 {
+		model = "360 N4s Snapdragon";
+		compatible = "360,qk1505";
+
+		/*
+		 * Warning: Bootloader is locked and cannot be unlocked.
+		 * This device requires signed boot images (SIGN_BOOTIMG=1) for booting.
+		 */
+
+		lk2nd,dtb-files = "msm8953-360-qk1505";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "360,qk1505-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ft8716_1080p_video{
+				compatible = "360,ft8716";
+			};
+		};
+	};
 };
