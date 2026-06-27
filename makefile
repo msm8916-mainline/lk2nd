@@ -75,7 +75,14 @@ ifeq ($(ENABLE_EARLY_ETHERNET),1)
 endif
 
 # setup toolchain prefix
-TOOLCHAIN_PREFIX ?= arm-eabi-
+# default to arm-eabi-, fall back to arm-none-eabi- if not found
+ifeq ($(origin TOOLCHAIN_PREFIX), undefined)
+  ifneq ($(shell which arm-eabi-gcc 2>/dev/null),)
+    TOOLCHAIN_PREFIX := arm-eabi-
+  else
+    TOOLCHAIN_PREFIX := arm-none-eabi-
+  endif
+endif
 CFLAGS += -fstack-protector-all
 CFLAGS += -fno-strict-overflow
 CPPFLAGS := -fno-exceptions -fno-rtti -fno-threadsafe-statics
