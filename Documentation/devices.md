@@ -93,6 +93,7 @@
 ### lk2nd-msm8952
 
 - Alcatel Idol 4 (6055*)
+- Asus Zenfone 4 Max Pro (x00i)
 - BQ X5 Plus (Longcheer L9360)
 - Cat S22 Flip (S22FLIP)
 - Fossil Gen 6 (hoki) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
