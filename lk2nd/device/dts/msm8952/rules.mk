@@ -7,6 +7,7 @@ ADTBS += \
 	$(LOCAL_DIR)/msm8917-xiaomi-riva.dtb \
 	$(LOCAL_DIR)/msm8920-motorola-jeter.dtb \
 	$(LOCAL_DIR)/msm8920-mtp.dtb \
+	$(LOCAL_DIR)/msm8937-asus-x00i.dtb \
 	$(LOCAL_DIR)/msm8937-huawei-aum.dtb \
 	$(LOCAL_DIR)/msm8937-medion-malata.dtb \
 	$(LOCAL_DIR)/msm8937-motorola-jeter.dtb \

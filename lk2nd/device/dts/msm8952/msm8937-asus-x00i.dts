@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8937 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0>;
+};
+
+&lk2nd {
+	model = "Asus Zenfone 4 Max Pro (x00i)";
+	compatible = "asus,x00i";
+	lk2nd,dtb-files = "msm8937-asus-x00i";
+
+	lk2nd,match-panel;
+	panel {
+		compatible = "asus,x00i-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_hx8394f_720p_video {
+			compatible = "asus,x00i-hx8394f-720p";
+		};
+	};
+};
