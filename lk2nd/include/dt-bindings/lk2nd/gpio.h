@@ -45,6 +45,7 @@
 /* 24:31 - Device-specific config flags */
 
 #define GPIO_PMIC_VIN_SEL(x)	(((x) & 0x07) << 24 | BIT(27)) /* bits 24:27 */
+#define GPIO_PMIC_INVERTED	BIT(28)
 
 /* device-specific definitions */
 
