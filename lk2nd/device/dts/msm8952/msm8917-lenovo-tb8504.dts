@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8917 0 QCOM_ID_MSM8217 0 QCOM_ID_MSM8617 0 QCOM_ID_APQ8017 0>;
+	qcom,board-id = <0x1000b 0>;
+};
+
+&lk2nd {
+	model = "Lenovo Tab 4 8";
+	compatible = "lenovo,tb8504";
+
+	lk2nd,dtb-files = "msm8917-lenovo-tb8504";
+
+	lk2nd,match-panel;
+	panel {
+		compatible = "lenovo,tb8504-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_auo_b080eab02_0_rm68200_800p_video {
+			compatible = "lenovo,tb8504-auo";
+			// touchscreen-compatible = "";
+		};
+	};
+};
