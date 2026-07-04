@@ -55,12 +55,18 @@
 
 			qcom,mdss_dsi_boe_hx8394f_720p_video {
 				compatible = "xiaomi,onclite-hx8394f";
+				touchscreen-compatible = "edt,edt-ft5406";
+				// touchscreen-compatible = "goodix,gt1158";
 			};
 			qcom,mdss_dsi_shenchao_ili9881_720p_video {
 				compatible = "xiaomi,onclite-ili9881";
+				touchscreen-compatible = "edt,edt-ft5406";
+				// touchscreen-compatible = "goodix,gt1158";
 			};
 			qcom,mdss_dsi_truly_otm1901a_720p_video {
 				compatible = "xiaomi,onclite-otm1901a";
+				touchscreen-compatible = "edt,edt-ft5406";
+				// touchscreen-compatible = "goodix,gt1158";
 			};
 		};
 	};
