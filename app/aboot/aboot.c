@@ -2175,9 +2175,8 @@ int boot_linux_from_mmc(void)
 
 		memmove((void *)hdr->tags_addr, (char *)best_match_dt_addr, dtb_size);
 	} else {
-		/* Validate the tags_addr */
-		if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual) ||
-			check_ddr_addr_range_bound(hdr->tags_addr, kernel_actual))
+		/* Validate the tags_addr, dev_tree_appended() checks aboot overlap */
+		if (check_ddr_addr_range_bound(hdr->tags_addr, kernel_actual))
 		{
 			dprintf(CRITICAL, "Device tree addresses are not valid.\n");
 			return -1;
@@ -2478,9 +2477,8 @@ int boot_linux_from_flash(void)
 		memmove((void *)hdr->tags_addr, (char *)best_match_dt_addr, dtb_size);
 
 	} else {
-		/* Validate the tags_addr */
-		if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual) ||
-	        check_ddr_addr_range_bound(hdr->tags_addr, kernel_actual))
+		/* Validate the tags_addr, dev_tree_appended() checks aboot overlap */
+		if (check_ddr_addr_range_bound(hdr->tags_addr, kernel_actual))
 		{
 			dprintf(CRITICAL, "Device tree addresses are not valid.\n");
 			return -1;
@@ -3428,8 +3426,8 @@ void cmd_boot(const char *arg, void *data, unsigned sz)
 #endif
 
 #if DEVICE_TREE
-	if (check_aboot_addr_range_overlap(hdr->tags_addr, kernel_actual) ||
-		check_ddr_addr_range_bound(hdr->tags_addr, kernel_actual))
+	/* Validate the tags_addr, dev_tree_appended() checks aboot overlap */
+	if (check_ddr_addr_range_bound(hdr->tags_addr, kernel_actual))
 	{
 		dprintf(CRITICAL, "Tags addresses are not valid.\n");
 		goto boot_failed;
