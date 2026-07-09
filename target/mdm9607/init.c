@@ -152,8 +152,7 @@ static void target_keystatus(void)
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	/*BLSP1 and UART5*/
-	uart_dm_init(5, 0, BLSP1_UART5_BASE);
+	uart_dm_init(DEBUG_UART_ID, 0, DEBUG_UART_BASE);
 #endif
 }
 

@@ -62,8 +62,6 @@
 #define PERIPH_SS_BASE                     0x07800000
 
 
-#define BLSP1_UART0_BASE                   (PERIPH_SS_BASE + 0x000AF000)
-#define BLSP1_UART1_BASE                   (PERIPH_SS_BASE + 0x000B0000)
 #define BLSP1_UART2_BASE                   (PERIPH_SS_BASE + 0x000B0000)
 #define BLSP1_UART5_BASE                   (PERIPH_SS_BASE + 0x000B3000)
 #define MSM_USB_BASE                       (PERIPH_SS_BASE + 0x000D9000)
