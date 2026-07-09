@@ -16,8 +16,8 @@ static const char *try_map(uintptr_t start, uint32_t size, uint flags1, uint fla
 		return "overlaps with aboot";
 	if (check_ddr_addr_range_bound(start, size))
 		return "outside of RAM?";
-	if (!arm_mmu_try_map_sections(start, start, size, flags1) &&
-	    (!flags2 || !arm_mmu_try_map_sections(start, start, size, flags2)))
+	if (!arm_mmu_try_map_sections(start, start, size, flags1, !flags2) &&
+	    (!flags2 || !arm_mmu_try_map_sections(start, start, size, flags2, true)))
 		return "mismatch with existing mappings";
 	return NULL;
 }

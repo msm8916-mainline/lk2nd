@@ -136,7 +136,8 @@ void arch_disable_mmu(void)
 	arm_invalidate_tlb();
 }
 
-bool arm_mmu_try_map_sections(addr_t paddr, addr_t vaddr, uint size, uint flags)
+bool arm_mmu_try_map_sections(addr_t paddr, addr_t vaddr, uint size, uint flags,
+			      bool log_mismatch)
 {
 	/* Round up to next MB and handle offsets within sections */
 	uint mb = (size + (paddr % MB) + MB - 1) / MB;
@@ -155,8 +156,9 @@ bool arm_mmu_try_map_sections(addr_t paddr, addr_t vaddr, uint size, uint flags)
 			continue;
 		}
 		if (tt[index + i] != desc) {
-			dprintf(CRITICAL, "MMU mapping mismatch @ %#08x: %#08x != %#08x\n",
-				(index + i) * MB, tt[index + i], desc);
+			if (log_mismatch)
+				dprintf(CRITICAL, "MMU mapping mismatch @ %#08x: %#08x != %#08x\n",
+					(index + i) * MB, tt[index + i], desc);
 			return false;
 		}
 	}
