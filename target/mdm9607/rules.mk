@@ -15,7 +15,7 @@ SCRATCH_REGION2_128                     := 0x80000000
 SCRATCH_REGION2_SIZE_128                := 0x02900000  # 41M
 
 KERNEL_REGION                           := 0x80000000
-KERNEL_REGION_SIZE                      := 0x02000000  # 32MB
+KERNEL_REGION_SIZE                      := 0x02900000  # 41MB
 
 SCRATCH_ADDR_256                        := 0x88000000
 SCRATCH_REGION_256                      := 0x88000000
