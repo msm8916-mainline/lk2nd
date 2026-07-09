@@ -105,7 +105,6 @@ void platform_early_init(void)
 	qgic_init();
 	qtimer_init();
 	scm_init();
-	board_ddr_detect();
 }
 
 void platform_init(void)
@@ -264,6 +263,7 @@ void platform_init_mmu_mappings(void)
 								mmu_section_table[i].flags);
 		}
 	}
+	board_ddr_detect();
 }
 
 /* Setup memory for this platform */
