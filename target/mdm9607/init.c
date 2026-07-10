@@ -90,6 +90,7 @@ static struct ptable flash_ptable;
 
 #define LAST_NAND_PTN_LEN_PATTERN 0xFFFFFFFF
 #define UBI_CMDLINE " rootfstype=ubifs rootflags=bulk_read"
+#define UBI_MTD_SIZE (sizeof("ubi.mtd=") + 10) /* INT_MAX as decimal string */
 
 #define CE1_INSTANCE            1
 #define CE_EE                   1
@@ -152,8 +153,7 @@ static void target_keystatus(void)
 void target_early_init(void)
 {
 #if WITH_DEBUG_UART
-	/*BLSP1 and UART5*/
-	uart_dm_init(5, 0, BLSP1_UART5_BASE);
+	uart_dm_init(DEBUG_UART_ID, 0, DEBUG_UART_BASE);
 #endif
 }
 
@@ -236,7 +236,9 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 {
 	struct ptable *ptable;
 	int system_ptn_index = -1;
-	uint32_t buflen = strlen(UBI_CMDLINE) + strlen(" root=ubi0:rootfs ubi.mtd=") + sizeof(int) + 1; /* 1 byte for null character*/
+	int modem_ptn_index = -1;
+	uint32_t buflen = strlen(UBI_CMDLINE) + strlen(" root=ubi0:rootfs") + 2 * UBI_MTD_SIZE + 1; /* 1 byte for null character*/
+	char mtd[UBI_MTD_SIZE + 1] = {0};
 
 	if (!cmdline || !part ) {
 	        dprintf(CRITICAL, "WARN: Invalid input param\n");
@@ -262,18 +264,29 @@ int get_target_boot_params(const char *cmdline, const char *part, char **buf)
 		free(*buf);
 		return -1;
 	}
+
 	/* Adding command line parameters according to target boot type */
-	snprintf(*buf, buflen, UBI_CMDLINE);
+	strlcpy(*buf, UBI_CMDLINE, buflen);
 
 	/*check if cmdline contains "root=" at the beginning of buffer or
 	* " root=" in the middle of buffer.
 	*/
-	if (((!strncmp(cmdline, "root=", strlen("root="))) ||
-		(strstr(cmdline, " root="))))
-		dprintf(DEBUG, "DEBUG: cmdline has root=\n");
-	else
-		snprintf(*buf+strlen(*buf), buflen, " root=ubi0:rootfs ubi.mtd=%d", system_ptn_index);
-		/*in success case buf will be freed in the calling function of this*/
+	if (((!strncmp(cmdline, "root=", strlen("root="))) || (strstr(cmdline, " root=")))) {
+		dprintf(DEBUG, "DEBUG: cmdline already has root=\n");
+		return 0;
+	}
+
+	strlcat(*buf, " root=ubi0:rootfs", buflen);
+	snprintf(mtd, sizeof(mtd), " ubi.mtd=%d", system_ptn_index);
+	strlcat(*buf, mtd, buflen);
+
+	modem_ptn_index = ptable_get_index(ptable, "modem");
+	if (modem_ptn_index >= 0) {
+		snprintf(mtd, sizeof(mtd), " ubi.mtd=%d", modem_ptn_index);
+		strlcat(*buf, mtd, buflen);
+	}
+
+	/*in success case buf will be freed in the calling function of this*/
 	return 0;
 }
 

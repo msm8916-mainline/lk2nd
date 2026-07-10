@@ -62,8 +62,7 @@
 #define PERIPH_SS_BASE                     0x07800000
 
 
-#define BLSP1_UART0_BASE                   (PERIPH_SS_BASE + 0x000AF000)
-#define BLSP1_UART1_BASE                   (PERIPH_SS_BASE + 0x000B0000)
+#define BLSP1_UART2_BASE                   (PERIPH_SS_BASE + 0x000B0000)
 #define BLSP1_UART5_BASE                   (PERIPH_SS_BASE + 0x000B3000)
 #define MSM_USB_BASE                       (PERIPH_SS_BASE + 0x000D9000)
 
@@ -107,6 +106,12 @@
 
 /* UART */
 #define BLSP1_AHB_CBCR                     (CLK_CTL_BASE + 0x1008)
+#define BLSP1_UART2_APPS_CBCR              (CLK_CTL_BASE + 0x302c)
+#define BLSP1_UART2_APPS_CMD_RCGR          (CLK_CTL_BASE + 0x3034)
+#define BLSP1_UART2_APPS_CFG_RCGR          (CLK_CTL_BASE + 0x3038)
+#define BLSP1_UART2_APPS_M                 (CLK_CTL_BASE + 0x303C)
+#define BLSP1_UART2_APPS_N                 (CLK_CTL_BASE + 0x3040)
+#define BLSP1_UART2_APPS_D                 (CLK_CTL_BASE + 0x3044)
 #define BLSP1_UART5_APPS_CBCR              (CLK_CTL_BASE + 0x603c)
 #define BLSP1_UART5_APPS_CMD_RCGR          (CLK_CTL_BASE + 0x6044)
 #define BLSP1_UART5_APPS_CFG_RCGR          (CLK_CTL_BASE + 0x6048)

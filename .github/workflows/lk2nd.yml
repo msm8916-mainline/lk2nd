@@ -26,7 +26,7 @@ jobs:
       - name: Install cross compiler
         uses: carlosperate/arm-none-eabi-gcc-action@v1
       - run: arm-none-eabi-gcc --version
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build
         run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
              ${{ inputs.options }} ${{ inputs.project }}-${{ inputs.platform }}
@@ -42,7 +42,7 @@ jobs:
         shell: bash
         if: inputs.project == 'lk2nd'
       - name: Archive artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.project }}-${{ inputs.platform }}
           path: ${{ inputs.artifacts }}

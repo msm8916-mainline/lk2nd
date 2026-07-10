@@ -43,10 +43,13 @@
 #define A7_SS_SIZE                          ((A7_SS_END - A7_SS_BASE)/MB)
 
 /* LK memory */
-#define LK_MEMORY                             (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+#define LK_MEMORY                             (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
                                                                  MMU_MEMORY_AP_READ_WRITE)
-/* Scratch memory - Strongly ordered, non-executable */
-#define SCRATCH_MEMORY                        (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+/* IMEM memory - cacheable, write through */
+#define COMMON_MEMORY                         (MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH | \
+                                                                 MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
+/* Scratch memory - cacheable, non-executable */
+#define SCRATCH_MEMORY                        (MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE | \
                                                                  MMU_MEMORY_AP_READ_WRITE | MMU_MEMORY_XN)
 /* Peripherals - shared device */
 #define IOMAP_MEMORY                          (MMU_MEMORY_TYPE_DEVICE_SHARED | \
@@ -70,7 +73,7 @@ static void board_ddr_detect(void);
  */
 mmu_section_t mmu_section_table[] = {
 /*   Physical addr,               Virtual addr,                   Size (in MB),                   Flags   */
-	{MSM_SHARED_BASE,         MSM_SHARED_BASE,                1,                              SCRATCH_MEMORY},
+	{MSM_SHARED_BASE,         MSM_SHARED_BASE,                1,                              COMMON_MEMORY},
 	{MEMBASE,                 MEMBASE,                        MEMSIZE / MB,                   LK_MEMORY},
 	{MSM_IOMAP_BASE,          MSM_IOMAP_BASE,                 MSM_IOMAP_SIZE,                 IOMAP_MEMORY},
 	{A7_SS_BASE,              A7_SS_BASE,                     A7_SS_SIZE,                     IOMAP_MEMORY},
@@ -105,7 +108,6 @@ void platform_early_init(void)
 	qgic_init();
 	qtimer_init();
 	scm_init();
-	board_ddr_detect();
 }
 
 void platform_init(void)
@@ -264,6 +266,7 @@ void platform_init_mmu_mappings(void)
 								mmu_section_table[i].flags);
 		}
 	}
+	board_ddr_detect();
 }
 
 /* Setup memory for this platform */

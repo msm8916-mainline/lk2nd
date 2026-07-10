@@ -58,6 +58,13 @@ Set to 0 to suppress most of the logging, set to 2 to enable excessive log messa
 
 Set to 1 to make lk2nd print the logs on the screen.
 
+#### DEBUG_UART_ID= - Configure UART instance to use for debug output
+
+Configure which UART instance of the SoC to log debug messages to. Only specific
+UART instances are supported currently:
+
+  - `mdm9607`: 2, 5
+
 #### `LK2ND_VERSION=` - Override lk2nd version string
 
 By default lk2nd build system will try to get the version from git. If you need

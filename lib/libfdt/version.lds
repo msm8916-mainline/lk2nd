@@ -20,7 +20,7 @@ LIBFDT_1.2 {
 		fdt_get_alias_namelen;
 		fdt_get_alias;
 		fdt_get_path;
-                fdt_header_size;
+		fdt_header_size;
 		fdt_supernode_atdepth_offset;
 		fdt_node_depth;
 		fdt_parent_offset;
@@ -43,6 +43,7 @@ LIBFDT_1.2 {
 		fdt_add_mem_rsv;
 		fdt_del_mem_rsv;
 		fdt_set_name;
+		fdt_setprop_namelen;
 		fdt_setprop;
 		fdt_delprop;
 		fdt_add_subnode_namelen;
@@ -71,6 +72,7 @@ LIBFDT_1.2 {
 		fdt_find_max_phandle;
 		fdt_generate_phandle;
 		fdt_check_full;
+		fdt_setprop_placeholder_namelen;
 		fdt_setprop_placeholder;
 		fdt_property_placeholder;
 		fdt_header_size_;
@@ -78,6 +80,8 @@ LIBFDT_1.2 {
 		fdt_setprop_inplace_namelen_partial;
 		fdt_create_with_flags;
 		fdt_overlay_target_offset;
+		fdt_get_symbol;
+		fdt_get_symbol_namelen;
 	local:
 		*;
 };
