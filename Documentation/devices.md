@@ -157,6 +157,7 @@
 - Motorola Moto G7 Power (ocean) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Motorola Moto G7 Play (channel) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Motorola One (deen)
+- Nubia Z11 Mini S (nx549j) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-mtp.dts`)
 - OPPO R9s/R9sk (R9s/R9sk) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-oppo-r9s.dts`)
 - OPPO Realme 2 (RMX1805/RMX1809) / C1 (RMX1811) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Qiku 360 N4s Snapdragon (QK1505-A02) (quirky - see comments in `lk2nd/device/dts/msm8953/msm8953-qrd-sku3.dts`)

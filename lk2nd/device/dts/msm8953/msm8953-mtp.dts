@@ -32,4 +32,45 @@
 			};
 		};
 	};
+
+	nx549j {
+		/*
+		 * This device has a quirk you need to keep in mind when building
+		 * and flashing lk2nd:
+		 *
+		 *    The stock bootloader does not like images built with embedded QCDT.
+		 *    Therefor LK2ND_QCDTBS="" must be set when building.
+		 */
+		model = "Nubia Z11 Mini S (nx549j)";
+		compatible = "nubia,nx549j";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8953-nubia-nx549j";
+
+		panel {
+			compatible = "nubia,nx549j-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_boe_otm1906c_1080p_5p2_cmd {
+				compatible = "nubia,boe-otm1906c";
+			};
+			qcom,mdss_dsi_edo_rm67191_1080p_5p2_command {
+				compatible = "nubia,edo-rm67191";
+			};
+			qcom,mdss_dsi_gvo_rm67195_1080p_5p2_command {
+				compatible = "nubia,gvo-rm67195";
+			};
+			qcom,mdss_dsi_gvo_rm67198_1080p_5p2_command {
+				compatible = "nubia,gvo-rm67198";
+			};
+			qcom,mdss_dsi_jdi_s6d1fa4x01_1080p_5p2_cmd {
+				compatible = "nubia,jdi-s6d1fa4x01";
+			};
+			qcom,mdss_dsi_samsung_d53g6ea8064t_1080p_5p2_command {
+				compatible = "nubia,samsung-d53g6ea8064t";
+			};
+			qcom,mdss_dsi_samsung_s6e3fa3x01_1080p_5p2_command {
+				compatible = "nubia,samsung-s6e3fa3x01";
+			};
+		};
+	};
 };
