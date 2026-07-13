@@ -68,7 +68,7 @@
 	};
 	samsung-expressatt {
 		model = "Samsung Galaxy Express SGH-I437";
-		compatible = "samsung,expressatt", "qcom,msm8960";
+		compatible = "samsung,expressatt";
 		lk2nd,match-bootloader = "I437*";
 		lk2nd,dtb-files = "msm8960-samsung-expressatt";
 
@@ -114,7 +114,7 @@
 	};
 	samsung-expressltexx {
 		model = "Samsung Galaxy Express (GT-I8730)";
-		compatible = "samsung,expressltexx", "qcom,msm8960";
+		compatible = "samsung,expressltexx";
 		lk2nd,match-bootloader = "I8730*";
 		lk2nd,dtb-files = "msm8930-samsung-expressltexx";
 
@@ -137,7 +137,7 @@
 	};
 	samsung-espresso10att {
 		model = "Samsung Galaxy Tab 2 10.1 (SGH-I497)";
-		compatible = "samsung,espresso10att", "qcom,msm8960";
+		compatible = "samsung,espresso10att";
 		lk2nd,match-bootloader = "I497*";
 		lk2nd,dtb-files = "msm8960-samsung-espresso10att";
 
@@ -202,7 +202,7 @@
 		 * For the cmdline_lk2nd.txt, just fill it with "lk2nd".
 		 */
 		model = "Sony Xperia SP (huashan)";
-		compatible = "sony,huashan", "qcom,msm8960";
+		compatible = "sony,huashan";
 		lk2nd,dtb-files = "msm8960-sony-huashan";
 		lk2nd,match-bootloader = "s1";
 	};

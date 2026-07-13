@@ -10,7 +10,7 @@
 
 &lk2nd {
 	model = "Huawei C8816";
-	compatible = "huawei,c8816", "lk2nd,device";
+	compatible = "huawei,c8816";
 
 	qcom,board-id = <8016 4>;
 	qcom,msm-id = <QCOM_ID_MSM8612 0x10001>;

@@ -10,7 +10,7 @@
 
 &lk2nd {
 	model = "Huawei Mediapad T1 A21L";
-	compatible = "huawei,hwt1a21l", "qcom,msm8916", "lk2nd,device";
+	compatible = "huawei,hwt1a21l";
 
 	//FIXME: lk2nd,dtb-files = "msm8916-huawei-hwt1a21l";
 };
