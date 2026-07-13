@@ -342,6 +342,12 @@ class DTRecord:
 			return True
 		return False
 
+	def __repr__(self):
+		return (f"DTRecord(plat_id={self.plat_id}, variant_id={self.variant_id}, "
+				f"subtype_id={self.subtype_id}, soc_rev={self.soc_rev}, "
+				f"pmic=({self.pmic0}, {self.pmic1}, {self.pmic2}, {self.pmic3}), "
+				f"file='{self.f}')")
+
 def generate_records(f, pagesize):
 	version = None
 	size = os.stat(f).st_size
@@ -461,9 +467,21 @@ if __name__ == "__main__":
 	pagesize = options.pagesize
 	flist = [f for a in args for f in find_dtbs(a)]
 
-	records = []
+	all_records = []
 	for f in flist:
-		records += generate_records(f, pagesize)
+		all_records += generate_records(f, pagesize)
+
+	records = []
+	for r in all_records:
+		match = next((x for x in records if x == r), None)
+		if match is None:
+			records.append(r)
+		elif match.f != r.f:
+			sys.exit(
+                "DTB conflict detected:\n"
+				f"\t{match}\n"
+				f"\t{r}"
+			)
 
 	if len(records) == 0:
 		sys.exit("No valid dtbs found")
