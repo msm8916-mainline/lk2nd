@@ -68,6 +68,28 @@ void arm_mmu_map_section(addr_t paddr, addr_t vaddr, uint flags)
 	arm_invalidate_tlb();
 }
 
+/* TTBR cacheability attributes */
+#define TTBR_RGN_IRGN_WB_WA		((0b01 << 3) | (1 << 6) | (0 << 0))
+#define TTBR_RGN_IRGN_WT		((0b10 << 3) | (0 << 6) | (1 << 0))
+#define TTBR_RGN_IRGN_WB_NWA		((0b11 << 3) | (1 << 6) | (1 << 0))
+
+#define MMU_SECTION_TEX_CB_MASK		((0b111 << 12) | (0b11 << 2))
+
+static uint32_t arm_mmu_ttbr_cache_flags(uint32_t ttbr)
+{
+	switch (tt[ttbr / MB] & MMU_SECTION_TEX_CB_MASK) {
+	case MMU_MEMORY_TYPE_NORMAL_WRITE_THROUGH:
+		return ttbr | TTBR_RGN_IRGN_WT;
+	case MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_NO_ALLOCATE:
+		return ttbr | TTBR_RGN_IRGN_WB_NWA;
+	case MMU_MEMORY_TYPE_NORMAL_WRITE_BACK_ALLOCATE:
+		return ttbr | TTBR_RGN_IRGN_WB_WA;
+	default:
+		/* Some weird or uncached configuration */
+		return ttbr;
+	}
+}
+
 void arm_mmu_init(void)
 {
 	int i;
@@ -95,7 +117,7 @@ void arm_mmu_init(void)
 	arm_write_ttbcr(0);
 
 	/* set up the translation table base */
-	arm_write_ttbr((uint32_t)tt);
+	arm_write_ttbr(arm_mmu_ttbr_cache_flags((uint32_t)tt));
 
 	/* set up the domain access register */
 	arm_write_dacr(0x00000001);
@@ -152,7 +174,6 @@ bool arm_mmu_try_map_sections(addr_t paddr, addr_t vaddr, uint size, uint flags,
 
 void arm_mmu_flush(void)
 {
-	arch_clean_cache_range((vaddr_t)&tt, sizeof(tt));
 	dsb();
 	arm_invalidate_tlb();
 	dsb();
