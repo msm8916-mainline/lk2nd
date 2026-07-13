@@ -16,7 +16,7 @@
 &lk2nd {
 	/* rev 2 */
 
-	gt58lte {
+	gt58wifi {
 		model = "Samsung Galaxy Tab A 8.0 (WiFi, SM-T350)";
 		compatible = "samsung,gt58wifi", "samsung,gt58";
 		lk2nd,match-bootloader = "T350*";
