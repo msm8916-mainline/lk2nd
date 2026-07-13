@@ -57,7 +57,7 @@
 		lk2nd,dtb-files = "apq8016-samsung-gtelwifiue";
 
 		qcom,msm-id = <QCOM_ID_APQ8016 0>;
-		qcom,board-id = <0xF708FF01 1>;
+		qcom,board-id = <0xF708FF01 5>;
 
 		muic-reset {
 			compatible = "samsung,muic-reset";
