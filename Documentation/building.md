@@ -58,7 +58,7 @@ Set to 0 to suppress most of the logging, set to 2 to enable excessive log messa
 
 Set to 1 to make lk2nd print the logs on the screen.
 
-#### DEBUG_UART_ID= - Configure UART instance to use for debug output
+#### `DEBUG_UART_ID=` - Configure UART instance to use for debug output
 
 Configure which UART instance of the SoC to log debug messages to. Only specific
 UART instances are supported currently:
@@ -79,6 +79,19 @@ continuing with the usual workflow. This is useful for debugging and development
 
 This can help with debugging on devices with carkit uart.
 You need to switch the cable before starting linux to see all the logs.
+
+#### `PANIC_REBOOT_MODE=` - Configure reboot mode target after panics
+
+LK tries to reboot when a fatal error (panic) occurs during runtime. This option
+allows changing the mode the device attempts to reboot to. Note that due to
+firmware differences across different vendors, this option may just trigger
+a normal reboot, without landing in the fastboot/download mode.
+
+The default depends on the project configuration:
+- **lk2nd:** `FASTBOOT_MODE`
+- **lk1st:** `EMERGENCY_DLOAD`
+- **Stock:** `NORMAL_DLOAD`
+- Other options: `NO_REBOOT`, `NORMAL_REBOOT`, `RECOVERY_MODE`
 
 ### lk2nd specific
 
