@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
+
+/*
+ * Various Samsung devices pick the wrong DTB, so we build only a single DTB
+ * and rely on the bootloader command line to detect the individual devices.
+ */
+
+#include "apq8016-samsung.dtsi"
+#include "msm8216-samsung.dtsi"
+#include "msm8239-samsung.dtsi"
+#include "msm8916-samsung.dtsi"
+#include "msm8929-samsung.dtsi"
+#include "msm8939-samsung.dtsi"
+
+/ {
+	qcom,msm-id = <QCOM_ID_APQ8016 0>,
+		      <QCOM_ID_MSM8216 0>,
+		      <QCOM_ID_MSM8239 0>,
+		      <QCOM_ID_MSM8916 0>,
+		      <QCOM_ID_MSM8929 0>,
+		      <QCOM_ID_MSM8939 0>;
+	qcom,board-id = SAMSUNG_APQ8016_BOARD_IDS,
+			SAMSUNG_MSM8216_BOARD_IDS,
+			SAMSUNG_MSM8239_BOARD_IDS,
+			SAMSUNG_MSM8916_BOARD_IDS,
+			SAMSUNG_MSM8929_BOARD_IDS,
+			SAMSUNG_MSM8939_BOARD_IDS;
+};

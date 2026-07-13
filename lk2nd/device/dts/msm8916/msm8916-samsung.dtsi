@@ -1,24 +1,17 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <skeleton64.dtsi>
-#include <lk2nd.dtsi>
-
-#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
-
-/ {
-	qcom,msm-id = <QCOM_ID_MSM8916 0>;
-	qcom,board-id = <0xCE08FF01 0>,
-			<0xCE08FF01 1>,
-			<0xCE08FF01 2>,
-			<0xCE08FF01 3>,
-			<0xCE08FF01 4>,
-			<0xCE08FF01 5>,
-			<0xCE08FF01 6>,
-			<0xCE08FF01 7>,
-			<0xCE08FF01 8>,
-			<0xCE08FF01 9>,
-			<0xCE08FF01 11>;
-};
+#define SAMSUNG_MSM8916_BOARD_IDS \
+	<0xCE08FF01 0>, \
+	<0xCE08FF01 1>, \
+	<0xCE08FF01 2>, \
+	<0xCE08FF01 3>, \
+	<0xCE08FF01 4>, \
+	<0xCE08FF01 5>, \
+	<0xCE08FF01 6>, \
+	<0xCE08FF01 7>, \
+	<0xCE08FF01 8>, \
+	<0xCE08FF01 9>, \
+	<0xCE08FF01 11>
 
 &lk2nd {
 	/* rev 0 */
