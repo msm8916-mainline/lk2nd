@@ -118,6 +118,9 @@
 		compatible = "samsung,fortuna3gdtv";
 		lk2nd,match-bootloader = "G530BT*";
 
+		qcom,msm-id = <QCOM_ID_MSM8216 0>;
+		qcom,board-id = <0xF808FF01 7>;
+
 		// FIXME: lk2nd,dtb-files = "msm8216-samsung-fortuna3gdtv";
 
 		muic-reset {
