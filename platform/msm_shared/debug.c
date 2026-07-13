@@ -167,14 +167,27 @@ int dgetc(char *c, bool wait)
 	}
 }
 
+/* Additional options not defined in reboot.h */
+#define NORMAL_REBOOT	0
+#define NO_REBOOT	(~0U)
+
+#define __STR(x)	#x
+#define _STR(x)		__STR(x)
+
 void platform_halt(void)
 {
 #if PON_VIB_SUPPORT
 	vib_turn_off();
 #endif
-	dprintf(CRITICAL, "HALT: reboot into dload mode...\n");
-	arch_clean_cache_range(MEMBASE, MEMSIZE);
-	reboot_device(NORMAL_DLOAD);
+	if (PANIC_REBOOT_MODE != NO_REBOOT) {
+		dprintf(CRITICAL, "HALT: reboot into " _STR(PANIC_REBOOT_MODE) "...\n");
+
+		/* Clean cache to allow dumping memory in download mode */
+		if (PANIC_REBOOT_MODE == NORMAL_DLOAD)
+			arch_clean_cache_range(MEMBASE, MEMSIZE);
+
+		reboot_device(PANIC_REBOOT_MODE);
+	}
 
 	dprintf(CRITICAL, "HALT: spinning forever...\n");
 	for (;;) ;

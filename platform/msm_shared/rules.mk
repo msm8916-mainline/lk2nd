@@ -17,6 +17,9 @@ OBJS += \
 	$(LOCAL_DIR)/qgic_common.o \
 	$(LOCAL_DIR)/crc32.o
 
+PANIC_REBOOT_MODE ?= NORMAL_DLOAD
+DEFINES += PANIC_REBOOT_MODE=$(PANIC_REBOOT_MODE)
+
 ifneq ($(filter $(DEFINES), WITH_DEBUG_JTAG=1),)
 OBJS += \
 	$(LOCAL_DIR)/jtag_hook.o \
