@@ -9,7 +9,10 @@
 
 # List of the projects to build by default
 PROJECTS="
+	lk2nd-mdm9607
 	lk2nd-msm8226
+	lk2nd-msm8610
+	lk2nd-msm8660
 	lk2nd-msm8909
 	lk2nd-msm8916
 	lk2nd-msm8952
