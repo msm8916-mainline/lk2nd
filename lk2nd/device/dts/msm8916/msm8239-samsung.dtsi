@@ -1,9 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
-#define SAMSUNG_MSM8239_BOARD_IDS \
-	<0x10708FF1 8>, \
-	<0x10708FF1 9>
-
 &lk2nd {
 	/* rev 9 */
 

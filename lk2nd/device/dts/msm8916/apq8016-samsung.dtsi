@@ -1,11 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
-#define SAMSUNG_APQ8016_BOARD_IDS \
-	<0xF708FF01 1>, \
-	<0xF708FF01 2>, \
-	<0xF708FF01 5>, \
-	<0xF708FF01 7>
-
 &lk2nd {
 	/* rev 2 */
 
