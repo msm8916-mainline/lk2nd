@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+    qcom,msm-id = <QCOM_ID_MSM8992 0>, <QCOM_ID_APQ8092 0>;
+    qcom,board-id = <2916 0>;
+    qcom,pmic-id = <0x10009 0x1000a 0x0 0x0>;
+};
+
+&lk2nd {
+	model = "LG Nexus 5X";
+	compatible = "lg,bullhead";
+	lk2nd,dtb-files = "msm8992-lg-bullhead";
+};
