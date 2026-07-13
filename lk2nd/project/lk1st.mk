@@ -2,6 +2,8 @@
 LK2ND_PROJECT := lk1st
 include lk2nd/project/base.mk
 
+PANIC_REBOOT_MODE ?= EMERGENCY_DLOAD
+
 # The device module is useless on lk1st if no DTB is bundled
 ifneq ($(LK2ND_BUNDLE_DTB),)
 MODULES += lk2nd/device
