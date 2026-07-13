@@ -12,7 +12,7 @@
 	bq-paella {
 		model = "BQ Aquaris X5 (Longcheer L8910)";
 		compatible = "bq,paella", "longcheer,l8910";
-		lk2nd,match-bootloader = "paella-*";
+		lk2nd,match-panel;
 
 		panel {
 			compatible = "longcheer,l8910-panel", "lk2nd,panel";
