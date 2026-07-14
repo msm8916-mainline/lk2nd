@@ -5,7 +5,7 @@
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8909 0>;
-	qcom,board-id = <0x08 0x11a>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x11a>;
 	compatible = "qcom,msm8909-mtp", "qcom,msm8909", "qcom,mtp";
 };
 
