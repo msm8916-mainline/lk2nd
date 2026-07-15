@@ -119,7 +119,6 @@
 - Motorola Moto G5S (montana)
 - Motorola Moto G6 Play (jeter)
 - OPPO A57 (A57) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8940-oppo-a57.dts`)
-- QiKU 360 N5 (qk1605-a01) (quirky - see comment in `lk2nd/device/dts/msm8952/msm8976-360-qk1605-a01.dts`)
 - Redmi 3S (land)
 - Redmi 4 (prada)
 - Redmi 4A (rolex)
