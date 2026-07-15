@@ -2105,18 +2105,37 @@ flash_ecc_bch_enabled(void)
 	return (flash.ecc_width == NAND_WITH_4_BIT_ECC)? 0 : 1;
 }
 
+static uint32_t find_num_pages_to_write(const uint8_t *data, uint32_t num_pages, uint32_t wsize)
+{
+	data += num_pages * wsize; /* Go to end of block */
+
+	/* Scan backward page-by-page, checking if any byte is not 0xFF */
+	while (num_pages > 0) {
+		data -= wsize; /* Go back one page */
+		for (uint32_t i = 0; i < wsize; i++)
+			if (data[i] != 0xff)
+				return num_pages;
+		--num_pages;
+	}
+	return 0; /* Entire block is empty 0xFF, write 0 pages */
+}
+
 int
 flash_write(struct ptentry *ptn,
 			unsigned write_extra_bytes,
 			const void *data,
 			unsigned bytes)
 {
+	/* EFS2 expects empty 0xFF pages to remain erased */
+	bool skip_trailing_0xff = strcmp(ptn->name, "efs2") == 0;
 	uint32_t page = ptn->start * flash.num_pages_per_blk;
 	uint32_t lastpage = (ptn->start + ptn->length) * flash.num_pages_per_blk;
+	uint32_t num_pages_to_write = flash.num_pages_per_blk;
 	uint32_t *spare = (unsigned *)flash_spare_bytes;
 	const unsigned char *image = data;
 	uint32_t wsize;
 	uint32_t spare_byte_count = 0;
+	uint32_t pages_avail = 0;
 	int r;
 
 	spare_byte_count = ((flash.cw_size * flash.cws_per_page)- flash.page_size);
@@ -2130,6 +2149,8 @@ flash_write(struct ptentry *ptn,
 
 	while (bytes > 0)
 	{
+		uint32_t page_in_blk;
+
 		if (bytes < wsize)
 		{
 			dprintf(CRITICAL,
@@ -2145,7 +2166,8 @@ flash_write(struct ptentry *ptn,
 			return -1;
 		}
 
-		if ((page & flash.num_pages_per_blk_mask) == 0)
+		page_in_blk = page & flash.num_pages_per_blk_mask;
+		if (page_in_blk == 0)
 		{
 			if (qpic_nand_blk_erase(page))
 			{
@@ -2156,6 +2178,21 @@ flash_write(struct ptentry *ptn,
 				page += flash.num_pages_per_blk;
 				continue;
 			}
+
+			pages_avail = MIN(bytes / wsize, flash.num_pages_per_blk);
+			if (skip_trailing_0xff)
+				num_pages_to_write = find_num_pages_to_write(image, pages_avail, wsize);
+		}
+
+		if (page_in_blk >= num_pages_to_write)
+		{
+			uint32_t skip = pages_avail - page_in_blk;
+			dprintf(INFO, "flash_write_image: Block %u: wrote %u pages, skipping %u trailing 0xFF pages (%u-%u)\n",
+				page / flash.num_pages_per_blk, page_in_blk, skip, page, page + skip - 1);
+			page += skip;
+			image += skip * wsize;
+			bytes -= skip * wsize;
+			continue;
 		}
 
 		memcpy(rdwr_buf, image, flash.page_size);
