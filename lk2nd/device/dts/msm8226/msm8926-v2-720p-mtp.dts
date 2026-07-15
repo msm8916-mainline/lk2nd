@@ -47,7 +47,7 @@
 		compatible = "sony,eagle";
 		lk2nd,match-bootloader = "s1*";
 
-		// FIXME: lk2nd,dtb-files = "msm8926-sony-eagle";
+		lk2nd,dtb-files = "msm8926-sony-xperia-yukon-eagle";
 
 		gpio-keys {
 			compatible = "gpio-keys";
