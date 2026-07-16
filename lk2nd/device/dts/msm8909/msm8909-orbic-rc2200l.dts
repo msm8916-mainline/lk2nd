@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8909 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x11a>;
+	compatible = "qcom,msm8909-mtp", "qcom,msm8909", "qcom,mtp";
+};
+
+&lk2nd {
+	orbic-rc2200l {
+		model = "Orbic RC2200L";
+		compatible = "orbic,rc2200l";
+
+		lk2nd,dtb-files = "msm8909-orbic-rc2200l";
+	};
+
+
+};
