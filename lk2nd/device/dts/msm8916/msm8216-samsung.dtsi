@@ -1,20 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <skeleton64.dtsi>
-#include <lk2nd.dtsi>
-
-#define I2C_GPIO_FLAGS	(GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE)
-
-/ {
-	qcom,msm-id = <QCOM_ID_MSM8216 0>;
-	qcom,board-id = <0xF808FF01 4>,
-			<0xF808FF01 5>,
-			<0xF808FF01 6>,
-			<0xF808FF01 7>,
-			<0xF808FF01 8>,
-			<0xF808FF01 10>;
-};
-
 &lk2nd {
 	/* rev 4 */
 
