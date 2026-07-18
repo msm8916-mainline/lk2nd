@@ -10,7 +10,7 @@
 
 &lk2nd {
 	cat-s22flip {
-		model = "Cat S22 Flip (S22FLIP)";
+		model = "Cat S22 Flip";
 		compatible = "cat,s22flip";
 
 		// FIXME: lk2nd,dtb-files = "qm215-cat-s22flip";

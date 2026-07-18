@@ -6,12 +6,13 @@
 / {
 	model = "Qualcomm APQ8009W"; /* Required by the oem bootloader. */
 	qcom,msm-id = <QCOM_ID_APQ8009W 0>;
-	qcom,board-id = <QCOM_BOARD_ID_MTP 0x105>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x5>,
+			<QCOM_BOARD_ID_MTP 0x105>;
 };
 
 &lk2nd {
 	mobvoi-catfish {
-		model = "Mobvoi TicWatch Pro (WF12096)";
+		model = "Mobvoi TicWatch Pro";
 		compatible = "mobvoi,catfish";
 
 		// FIXME: lk2nd,dtb-files = "apq8009w-mobvoi-catfish";
@@ -19,10 +20,10 @@
 		lk2nd,match-panel;
 
 		panel {
-			compatible = "mobvoi,catfish-panel";
+			compatible = "mobvoi,catfish-panel", "lk2nd,panel";
 
 			qcom,mdss_dsi_rm67162_wqvga_cmd {
-				compatible = "mobvoi,rm67162";
+				compatible = "mobvoi,catfish-rm67162";
 			};
 		};
 
