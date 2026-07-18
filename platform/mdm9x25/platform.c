@@ -35,6 +35,7 @@
 #include <mmu.h>
 #include <arch/arm/mmu.h>
 #include <platform/iomap.h>
+#include <platform/clock.h>
 #include <target.h>
 #include <smem.h>
 #include <reg.h>

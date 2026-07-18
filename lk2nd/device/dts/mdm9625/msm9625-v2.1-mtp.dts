@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <134 7 0x20001>, <152 7 0x20001>, <149 7 0x20001>,
+		      <150 7 0x20001>, <151 7 0x20001>, <148 7 0x20001>,
+		      <173 7 0x20001>, <174 7 0x20001>, <175 7 0x20001>;
+};
+
+&lk2nd {
+	tp-link-m7350-v3 {
+		model = "TP-Link M7350";
+		compatible = "tplink,m7350-v3";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			
+			menu {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 14 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			reset {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 15 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};

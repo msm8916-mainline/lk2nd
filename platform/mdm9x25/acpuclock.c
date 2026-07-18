@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <debug.h>
 #include <reg.h>
+#include <mmc.h>
 #include <clock.h>
 #include <platform/clock.h>
 #include <platform/iomap.h>
@@ -84,8 +85,8 @@ void clock_config_uart_dm(uint8_t id)
 	int ret;
 	char clk_name[64];
 
-    ret = clk_get_set_enable("uart_iface_clk", 0, 1);
-    if (ret)
+	ret = clk_get_set_enable("uart_iface_clk", 0, 1);
+	if (ret)
 	{
 		dprintf(CRITICAL, "failed to set uart_iface_clk ret = %d\n", ret);
 		ASSERT(0);
@@ -93,7 +94,7 @@ void clock_config_uart_dm(uint8_t id)
 
 	snprintf(clk_name, 64, "uart%u_core_clk", id);
 
-    ret = clk_get_set_enable(clk_name, 7372800, 1);
+	ret = clk_get_set_enable(clk_name, 7372800, 1);
 	if (ret)
 	{
 		dprintf(CRITICAL, "failed to set uart%u_core_clk ret = %d\n", id, ret);
@@ -101,3 +102,70 @@ void clock_config_uart_dm(uint8_t id)
 	}
 }
 
+void clock_init_mmc(uint32_t interface)
+{
+	char clk_name[64];
+	int ret;
+
+	snprintf(clk_name, 64, "sdc%u_iface_clk", interface);
+
+	/* enable interface clock */
+	ret = clk_get_set_enable(clk_name, 0, 1);
+	if (ret)
+	{
+		dprintf(CRITICAL, "failed to set sdc1_iface_clk ret = %d\n", ret);
+		ASSERT(0);
+	}
+}
+
+/* Configure MMC clock */
+void clock_config_mmc(uint32_t interface, uint32_t freq)
+{
+	int ret;
+	char clk_name[64];
+
+	snprintf(clk_name, 64, "sdc%u_core_clk", interface);
+
+	/* Disalbe MCI_CLK before changing the sdcc clock */
+#ifndef MMC_SDHCI_SUPPORT
+	mmc_boot_mci_clk_disable();
+#endif
+
+	if (freq == MMC_CLK_400KHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 400000, 1);
+	}
+	else if (freq == MMC_CLK_25MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 25000000, 1);
+	}
+	else if (freq == MMC_CLK_50MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 50000000, 1);
+	}
+	else if (freq == MMC_CLK_96MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 100000000, 1);
+	}
+	else if (freq == MMC_CLK_200MHZ)
+	{
+		ret = clk_get_set_enable(clk_name, 200000000, 1);
+	}
+	else
+	{
+		dprintf(CRITICAL, "sdc frequency (%u) is not supported\n", freq);
+		ASSERT(0);
+		return;
+	}
+
+	if (ret)
+	{
+		dprintf(CRITICAL, "failed to set sdc%u_core_clk ret = %d\n", interface, ret);
+		ASSERT(0);
+	}
+
+	/* Enalbe MCI clock */
+#ifndef MMC_SDHCI_SUPPORT
+	mmc_boot_mci_clk_enable();
+#endif
+}
