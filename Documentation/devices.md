@@ -83,7 +83,7 @@
 - Lenovo Yoga Tab 3 8 LTE / WIFI
 - Lenovo Yoga Tab 3 10 LTE / WIFI
 - Lenovo Tab 10 (TB-X103F)
-- Mobvoi TicWatch Pro (WF12096)
+- Mobvoi TicWatch Pro
 - Nokia 6300 4G
 - Nokia 8000 4G
 - Nokia 8110 4G
@@ -95,7 +95,7 @@
 - Alcatel Idol 4 (6055*)
 - Asus Zenfone 4 Max Pro (x00i)
 - BQ X5 Plus (Longcheer L9360)
-- Cat S22 Flip (S22FLIP)
+- Cat S22 Flip
 - Fossil Gen 6 (hoki) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - General Mobile GM 5 Plus (shamrock)
 - HMD Global Nokia 4.2 (panther) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
