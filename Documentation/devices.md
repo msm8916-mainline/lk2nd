@@ -136,6 +136,7 @@
 - Sony Xperia X Compact
 - Wileyfox Swift 2
 - Xiaomi Mi Max (hydrogen)
+- Zebra TC56 (ironman) 
 
 ### lk2nd-msm8953
 
