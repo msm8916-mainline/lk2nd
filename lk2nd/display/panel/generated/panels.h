@@ -18,6 +18,7 @@
 #include "lk_panel_orise8012a_fwvga_cmd.h"
 #include "lk_panel_r61308_720p_video.h"
 #include "lk_panel_r69431_720p_video.h"
+#include "lk_panel_tc7x_ili9881c_5p0inch_720p_video.h"
 #include "lk_panel_truly_qhd_video.h"
 
 int oem_panel_select(const char *panel_name, struct panel_struct *panel,
