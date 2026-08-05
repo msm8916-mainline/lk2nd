@@ -116,4 +116,20 @@
 			};
 		};
 	};
+
+	x00id {
+		model = "Asus ZenFone 4 Max (X00ID)";
+		compatible = "asus,x00id";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8937-asus-x00id";
+
+		panel {
+			compatible = "asus,x00id-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili9881c_fhd_video_dj {
+				compatible = "asus,x00id-ili9881c";
+			};
+		};
+	};
 };
