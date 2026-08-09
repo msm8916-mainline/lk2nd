@@ -61,4 +61,9 @@
 			compatible = "ee,harrier-mini-hx8394a";
 		};
 	};
+
+	regulator-panel {
+		compatible = "regulator-fixed";
+		gpios = <&tlmm 2 GPIO_ACTIVE_HIGH>;
+	};
 };
