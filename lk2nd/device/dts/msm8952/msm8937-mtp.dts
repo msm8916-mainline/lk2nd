@@ -130,6 +130,10 @@
 			qcom,mdss_dsi_ili9881c_fhd_video_dj {
 				compatible = "asus,x00id-ili9881c";
 			};
+
+			qcom,mdss_dsi_ili9885_fhd_video_dj {
+				compatible = "asus,x00id-ili9885";
+			};
 		};
 	};
 };
