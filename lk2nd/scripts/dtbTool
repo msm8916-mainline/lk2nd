@@ -164,6 +164,14 @@ prototype = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_char_p)
 paramflags = (1, "fdt", None), (1, "path", None)
 fdt_path_offset = prototype(("fdt_path_offset", libfdt), paramflags)
 
+prototype = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_int)
+paramflags = (1, "fdt", None), (1, "offset", None)
+fdt_first_subnode = prototype(("fdt_first_subnode", libfdt), paramflags)
+
+prototype = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_int)
+paramflags = (1, "fdt", None), (1, "offset", None)
+fdt_next_subnode = prototype(("fdt_next_subnode", libfdt), paramflags)
+
 prototype = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_void_p)
 paramflags = (1, "fdt", None), (1, "nodeoffset", None), (1, "name", None), (1, "lenp", None)
 fdt_getprop = prototype(("fdt_getprop", libfdt), paramflags)
@@ -342,25 +350,23 @@ class DTRecord:
 			return True
 		return False
 
-def generate_records(f, pagesize):
+	def __repr__(self):
+		return (f"DTRecord(plat_id={self.plat_id}, variant_id={self.variant_id}, "
+				f"subtype_id={self.subtype_id}, soc_rev={self.soc_rev}, "
+				f"pmic=({self.pmic0}, {self.pmic1}, {self.pmic2}, {self.pmic3}), "
+				f"file='{self.f}')")
+
+def parse_node_records(blob, node, f, size):
 	version = None
-	size = os.stat(f).st_size
-	mod = size % pagesize
-	if mod != 0:
-		size += pagesize - mod;
 
-	fi = open(f, 'rb')
-	s = ctypes.create_string_buffer(fi.read())
-	blob = ctypes.byref(s)
-
-	msm_id = fdt_get_property_int(blob, 0, "qcom,msm-id")
+	msm_id = fdt_get_property_int(blob, node, "qcom,msm-id")
 	if msm_id is None:
-		compats = fdt_get_property_string(blob, 0, "compatible")
-		if len(compats) == 0:
-			sys.exit("%s is missing compatible?" % f)
+		compats = fdt_get_property_string(blob, node, "compatible")
+		if node != 0 or len(compats) == 0:
+			return None
 
-	board_id = fdt_get_property_int(blob, 0, "qcom,board-id")
-	pmic_id = fdt_get_property_int(blob, 0, "qcom,pmic-id")
+	board_id = fdt_get_property_int(blob, node, "qcom,board-id")
+	pmic_id = fdt_get_property_int(blob, node, "qcom,pmic-id")
 
 	if board_id:
 		x = iter(board_id)
@@ -409,17 +415,46 @@ def generate_records(f, pagesize):
 				     x.pmic_id[2], x.pmic_id[3], 0, size, f,
 				     version) for x in ids]
 
-	if f.endswith('/lk2nd/device/dts/msm8916/samsung.dtb'):
-		# The msm8916 samsung.dts results in a lot of QCDT entries (records)
-		# because each qcom,msm-id is combined with each qcom,board-id. However,
-		# each board-id is actually only valid for one particular msm-id,
-		# so we can save quite some space by cleaning them up here.
-		records = filter(lambda r:
-			# Workaround for inconsistent qcom,board-id used on MSM8929
-			r.plat_id & 0xff == r.variant_id >> 24 if r.variant_id & 0xfffff == 0x1ff01
-			else r.plat_id in (r.variant_id >> 24, r.variant_id >> 20), records)
+	return records
+
+def parse_lk2nd_records(blob, f, size):
+	lk2nd_node = fdt_path_offset(blob, b'/lk2nd')
+	if lk2nd_node < 0:
+		return None
+
+	records = []
+	node = fdt_first_subnode(blob, lk2nd_node)
+	while node >= 0:
+		node_records = parse_node_records(blob, node, f, size)
+		if not node_records:
+			return None  # All nodes must have qcom,msm-id/qcom,board-id
+		records += node_records
+		node = fdt_next_subnode(blob, node)
 
 	return records
+
+def generate_records(f, pagesize):
+	version = None
+	size = os.stat(f).st_size
+	mod = size % pagesize
+	if mod != 0:
+		size += pagesize - mod;
+
+	fi = open(f, 'rb')
+	s = ctypes.create_string_buffer(fi.read())
+	blob = ctypes.byref(s)
+
+	# Try parsing root records
+	records = parse_node_records(blob, 0, f, size)
+	if records:
+		return records
+
+	# Try parsing lk2nd node records
+	records = parse_lk2nd_records(blob, f, size)
+	if records:
+		return records
+
+	sys.exit("%s is missing qcom,msm-id/qcom,board-id or compatible?" % f)
 
 def write_padding(f, pagesize):
 	count = pagesize - (f.tell() % pagesize)
@@ -461,9 +496,21 @@ if __name__ == "__main__":
 	pagesize = options.pagesize
 	flist = [f for a in args for f in find_dtbs(a)]
 
-	records = []
+	all_records = []
 	for f in flist:
-		records += generate_records(f, pagesize)
+		all_records += generate_records(f, pagesize)
+
+	records = []
+	for r in all_records:
+		match = next((x for x in records if x == r), None)
+		if match is None:
+			records.append(r)
+		elif match.f != r.f:
+			sys.exit(
+                "DTB conflict detected:\n"
+				f"\t{match}\n"
+				f"\t{r}"
+			)
 
 	if len(records) == 0:
 		sys.exit("No valid dtbs found")
