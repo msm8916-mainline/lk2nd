@@ -49,4 +49,5 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8939-qrd-wt82918.dtb \
 	$(LOCAL_DIR)/msm8939-qrd-wt82918hd.dtb \
 	$(LOCAL_DIR)/msm8939-samsung.dtb \
+        $(LOCAL_DIR)/msm8939-vivo-pd1523.dtb \
 	$(LOCAL_DIR)/msm8939-xiaomi-ido.dtb \

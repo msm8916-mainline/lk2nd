@@ -56,6 +56,7 @@
 - Samsung Galaxy Tab A 8.0 (2015) - SM-T350, SM-T355, SM-T355Y, SM-T357W
 - Samsung Galaxy Tab A 9.7 (2015) - SM-T550, SM-T555
 - Samsung Galaxy Tab E 9.6 WiFi (2015) - SM-T560NU
+- Vivo V3-Max /Vivo V3-Max A (2016) - pd1523
 - Vivo Y13L / Y613f / Y913 - PD1304CL, PD1304CF, PD1304CV (use lk1st quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-vivo-cdp-1.dts`)
 - Vivo Y23L / Y623 / Y923 - PD1419L, PD1419F, PD1419V (use lk1st quirky - see comment in `lk2nd/device/dts/msm8916/msm8916-vivo-cdp-1.dts`)
 - Vivo Y21L

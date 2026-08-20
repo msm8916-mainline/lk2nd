@@ -1,0 +1,45 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8939 0>;
+	qcom,board-id = <QCOM_BOARD_ID_CDP 13>;
+};
+
+&lk2nd {
+	vivo-pd1523 {
+		model = "vivo V3 Max (PD1523)";
+		compatible = "vivo,pd1523";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8939-vivo-pd1523";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+		panel {
+			compatible = "vivo,pd1523-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_otm1901_1080p_video {
+				compatible = "vivo,pd1523-otm1901";
+			};
+			qcom,mdss_dsi_nt35596_1080p_video {
+				compatible = "vivo,pd1523-nt35596";
+			};
+			qcom,mdss_dsi_jdi_1080p_video {
+				compatible = "vivo,pd1523-jdi";
+			};
+			qcom,mdss_dsi_tryotm1901a_1080p_video {
+				compatible = "vivo,pd1523-tryotm1901a";
+			};
+		};
+	};
+};
