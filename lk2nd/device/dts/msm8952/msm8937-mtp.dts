@@ -134,6 +134,10 @@
 			qcom,mdss_dsi_ili9885_fhd_video_dj {
 				compatible = "asus,x00id-ili9885";
 			};
+
+			qcom,mdss_dsi_hx8394f_720p_video {
+				compatible = "asus,x00id-hx8394f-720p";
+			};
 		};
 	};
 };
