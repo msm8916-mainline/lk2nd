@@ -65,6 +65,47 @@
 		};
 	};
 
+	/*
+	 * To build for oppo-a37, add LK2ND_ADTBS="msm8916-mtp.dtb" LK2ND_QCDTBS=
+	 * to your make cmdline. The A37 does not boot a lk2nd image that carries a
+	 * QCDT table -- the bootloader gets upset and goes into the phone's
+	 * fastboot. Only an appended DTB works.
+	 */
+	oppo-a37 {
+		model = "OPPO A37";
+		compatible = "oppo,a37";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-oppo-a37";
+
+		panel {
+			compatible = "oppo,a37-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_oppo15399boe_ili9881c_720p_video {
+				compatible = "oppo,a37-boe-ili9881c";
+			};
+			qcom,mdss_dsi_oppo15399tm_nt35521s_720p_video {
+				compatible = "oppo,a37-tm-nt35521s";
+			};
+			qcom,mdss_dsi_oppo15399truly_nt35521s_720p_video {
+				compatible = "oppo,a37-truly-nt35521s";
+			};
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
 	asus-z010d {
 		model = "Asus Zenfone Max ZC550KL";
 		compatible = "asus,z010d";
