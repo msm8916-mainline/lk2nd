@@ -1412,6 +1412,52 @@ void *dev_tree_appended(void *kernel, uint32_t kernel_size, uint32_t dtb_offset,
 	return NULL;
 }
 
+/*
+ * Return the size of a version 2 QCDT entry for this table.
+ *
+ * Standard entries are six words. Some OPPO devices ship a table that still
+ * declares version 2 but uses seven, with the OPPO project number inserted
+ * between soc_rev and offset. Reading such a table with the standard stride
+ * finds a matching platform_id/variant_id/board_hw_subtype and then takes the
+ * project number as the DTB offset, so a device tree is "found" but the data
+ * loaded from it is garbage. The failure is silent.
+ *
+ * Tell the two apart by checking the fields that must be well formed: a DTB
+ * offset is at least four byte aligned, and no entry has a zero size. Under
+ * the wrong stride both land on unrelated words and one of the two almost
+ * always fails.
+ */
+static uint32_t dev_tree_entry_size_v2(struct dt_table *table)
+{
+	const uint32_t *words = (const uint32_t *)
+		((const unsigned char *)table + DEV_TREE_HEADER_SIZE);
+	const uint32_t std_words = sizeof(struct dt_entry_v2) / sizeof(uint32_t);
+	const uint32_t oppo_words = sizeof(struct dt_entry_v2_oppo) / sizeof(uint32_t);
+	bool std_ok = true, oppo_ok = true;
+	uint32_t i;
+
+	if (!table->num_entries)
+		return sizeof(struct dt_entry_v2);
+
+	for (i = 0; i < table->num_entries && (std_ok || oppo_ok); i++) {
+		const uint32_t *std = words + i * std_words;
+		const uint32_t *oppo = words + i * oppo_words;
+
+		/* offset, size are the last two words of the entry */
+		if ((std[std_words - 2] & 3) || !std[std_words - 1])
+			std_ok = false;
+		if ((oppo[oppo_words - 2] & 3) || !oppo[oppo_words - 1])
+			oppo_ok = false;
+	}
+
+	if (!std_ok && oppo_ok) {
+		dprintf(INFO, "DTB table uses OPPO seven-word entries\n");
+		return sizeof(struct dt_entry_v2_oppo);
+	}
+
+	return sizeof(struct dt_entry_v2);
+}
+
 /* Returns 0 if the device tree is valid. */
 int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *dt_hdr_size)
 {
@@ -1427,7 +1473,7 @@ int dev_tree_validate(struct dt_table *table, unsigned int page_size, uint32_t *
 	if (table->version == DEV_TREE_VERSION_V1) {
 		dt_entry_size = sizeof(struct dt_entry_v1);
 	} else if (table->version == DEV_TREE_VERSION_V2) {
-		dt_entry_size = sizeof(struct dt_entry_v2);
+		dt_entry_size = dev_tree_entry_size_v2(table);
 	} else if (table->version == DEV_TREE_VERSION_V3) {
 		dt_entry_size = DEV_TREE_DT_ENTRY_SIZE_V3;
 	} else {
@@ -1859,6 +1905,7 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 	struct dt_entry_node *dt_entry_queue = NULL;
 	struct dt_entry_node *dt_node_tmp1 = NULL;
 	struct dt_entry_node *dt_node_tmp2 = NULL;
+	uint32_t entry_size_v2 = 0;
 	uint32_t found = 0;
 
 	if (!dt_entry_info) {
@@ -1868,6 +1915,7 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 	}
 
 	table_ptr = (unsigned char *)table + DEV_TREE_HEADER_SIZE;
+	entry_size_v2 = dev_tree_entry_size_v2(table);
 	cur_dt_entry = &dt_entry_buf_1;
 	best_match_dt_entry = NULL;
 	dt_entry_queue = (struct dt_entry_node *)
@@ -1922,9 +1970,16 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 			cur_dt_entry->pmic_rev[1] = board_pmic_target(1);
 			cur_dt_entry->pmic_rev[2] = board_pmic_target(2);
 			cur_dt_entry->pmic_rev[3] = board_pmic_target(3);
-			cur_dt_entry->offset = dt_entry_v2->offset;
-			cur_dt_entry->size = dt_entry_v2->size;
-			table_ptr += sizeof(struct dt_entry_v2);
+			if (entry_size_v2 == sizeof(struct dt_entry_v2_oppo)) {
+				struct dt_entry_v2_oppo *oppo =
+					(struct dt_entry_v2_oppo *)table_ptr;
+				cur_dt_entry->offset = oppo->offset;
+				cur_dt_entry->size = oppo->size;
+			} else {
+				cur_dt_entry->offset = dt_entry_v2->offset;
+				cur_dt_entry->size = dt_entry_v2->size;
+			}
+			table_ptr += entry_size_v2;
 			break;
 		case DEV_TREE_VERSION_V3:
 			memcpy(cur_dt_entry, (struct dt_entry *)table_ptr,
