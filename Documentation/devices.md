@@ -90,6 +90,7 @@
 - Nokia 6300 4G
 - Nokia 8000 4G
 - Nokia 8110 4G
+- Orbic Journey V (RC2200L)
 - ZTE N818S (sapphire)
 - Lenovo Tab e10 (TB-X104F)
 
