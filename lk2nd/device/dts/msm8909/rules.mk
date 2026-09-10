@@ -14,4 +14,5 @@ QCDTBS += \
 ADTBS += \
 	$(LOCAL_DIR)/apq8009w-wtp.dtb \
 	$(LOCAL_DIR)/apq8009-qrd.dtb \
+	$(LOCAL_DIR)/msm8909-orbic-rc2200l.dtb \
 
