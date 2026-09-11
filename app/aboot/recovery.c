@@ -396,7 +396,7 @@ int send_recovery_cmd(const char *command)
 
 int _emmc_recovery_init(void)
 {
-	int update_status = 0;
+	int update_status __attribute__((unused)) = 0;
 	struct recovery_message *msg;
 	uint32_t block_size = 0;
 
@@ -428,6 +428,7 @@ int _emmc_recovery_init(void)
 		boot_into_recovery = 1;
 	}
 
+#if !ABOOT_STANDALONE
 	if (!strcmp("update-radio",msg->command))
 	{
 		/* We're now here due to radio update, so check for update status */
@@ -460,6 +461,7 @@ int _emmc_recovery_init(void)
 	emmc_set_recovery_msg(msg);	// send recovery message
 
 out:
+#endif
 	if(msg)
 		free(msg);
 	return 0;
