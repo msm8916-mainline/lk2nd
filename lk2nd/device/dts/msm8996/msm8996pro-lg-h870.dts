@@ -4,13 +4,13 @@
 #include <lk2nd.dtsi>
 
 / {
-	model = "LG V20";	
-	qcom,msm-id = <QCOM_ID_MSM8996 0x30001>;
+	model = "LG G6";					  
+	qcom,msm-id = <QCOM_ID_MSM8996SG 0x10001>;
 	qcom,board-id = <0xc08 0x00>;
 	qcom,pmic-id = <0x20009 0x10013 0x00 0x00>;
 };
 
 &lk2nd {
-	model = "LG V20 (International)";
-	compatible = "lg,h990";
+	model = "LG G6 (H870)";
+	compatible = "lg,H870";
 };
