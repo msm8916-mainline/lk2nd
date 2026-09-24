@@ -5,14 +5,14 @@
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8916 0>;
-	qcom,board-id = <24 0>;
+	qcom,board-id = <21 0>, <22 0>, <23 0>, <24 0>;
 };
 
 &lk2nd {
 	model = "Asus Zenfone 2 Laser ZE500KL";
 	compatible = "asus,z00e";
 
-	// FIXME: lk2nd,dtb-files = "msm8916-asus-z00e";
+	lk2nd,dtb-files = "msm8916-asus-z00e";
 
 	gpio-keys {
 		compatible = "gpio-keys";
@@ -29,11 +29,17 @@
 	panel {
 		compatible = "asus,z00e-panel", "lk2nd,panel";
 
+		qcom,mdss_dsi_auo_rm68200_720p_video {
+			compatible = "asus,z00e-auo-rm68200";
+		};
+		qcom,mdss_dsi_boe_otm1284a_720p_video {
+			compatible = "asus,z00e-boe-otm1284a";
+		};
 		qcom,mdss_dsi_otm1284a_720p_video {
 			compatible = "asus,z00e-otm1284a";
 		};
-		qcom,mdss_dsi_auo_rm68200_720p_video {
-			compatible = "asus,z00e-auo-rm68200";
+		qcom,mdss_dsi_tm_otm1284a_720p_video {
+			compatible = "asus,z00e-tm-otm1284a";
 		};
 	};
 };
