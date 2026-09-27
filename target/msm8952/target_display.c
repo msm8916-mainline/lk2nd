@@ -489,19 +489,6 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	}
 
 	if (enable) {
-		if (platform_is_msm8937()) {
-			static const uint8_t lcd_pwr_pins[] = { 47, 131, 24 };
-			for (unsigned i = 0; i < sizeof(lcd_pwr_pins); i++) {
-				gpio_tlmm_config(lcd_pwr_pins[i], 0,
-					GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA,
-					GPIO_ENABLE);
-				gpio_set_dir(lcd_pwr_pins[i], GPIO_STATE_HIGH);
-				dprintf(INFO, "LCD_PWR: gpio %u high\n",
-					lcd_pwr_pins[i]);
-			}
-			mdelay(100);
-		}
-
 		if (pinfo->mipi.use_enable_gpio && !platform_is_msm8956()) {
 			gpio_tlmm_config(enable_gpio.pin_id, 0,
 				enable_gpio.pin_direction, enable_gpio.pin_pull,

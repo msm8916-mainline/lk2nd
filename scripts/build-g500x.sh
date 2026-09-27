@@ -4,8 +4,8 @@
 set -e
 cd "$(dirname "$0")/.."
 
-OUT=/root/rkl/lk1st-g500x-xz-official.mbn
-RBL=/storage/emulated/0/Stryker/rbl/lk1st-g500x-xz-official.mbn
+OUT=/root/rkl/lk1st-g500x-xz-official-v2.mbn
+RBL=/storage/emulated/0/Stryker/rbl/lk1st-g500x-xz-official-v2.mbn
 
 echo "== 1/4 编译捆绑 DTB =="
 dtc -I dts -O dtb -o lk1st-g500x.dtb lk1st-g500x.dts
