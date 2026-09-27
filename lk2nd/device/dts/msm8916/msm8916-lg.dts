@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <100 0>;
+};
+
+&lk2nd {
+	c50 {
+		model = "LG Leon LTE";
+		compatible = "lg,c50";
+		lk2nd,match-cmdline = "* model.name=LG-H34*";
+
+		lk2nd,dtb-files = "msm8916-lg-c50";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			vol-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			vol-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	m216 {
+		model = "LG K10 (K420n)";
+		compatible = "lg,m216";
+		lk2nd,match-cmdline = "* model.name=LG-K420n *";
+
+		lk2nd,dtb-files = "msm8916-lg-m216";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			vol-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			vol-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};

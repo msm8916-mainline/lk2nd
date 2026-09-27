@@ -1,0 +1,110 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <0x9E08FF01 1 0x20000>,
+		      <0x9E08FF01 7 0x20000>,
+		      <QCOM_ID_MSM8226 QCOM_BOARD_ID_MTP 0x20007>;
+};
+
+&lk2nd {
+	/* rev 1 */
+
+	matisse3g {
+		model = "Samsung Galaxy Tab 4 10.1 3G (SM-T532)";
+		compatible = "samsung,matisse-wifi", "samsung,matisse";
+		lk2nd,match-bootloader = "T532*";
+
+		lk2nd,dtb-files = "apq8026-samsung-matisse-wifi";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	/* rev 2 */
+
+	matisse3gxx {
+		model = "Samsung Galaxy Tab 4 10.1 3G (SM-T531)";
+		compatible = "samsung,matisse-wifi", "samsung,matisse";
+		lk2nd,match-bootloader = "T531*";
+
+		lk2nd,dtb-files = "apq8026-samsung-matisse-wifi";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	/* rev 7 */
+
+	ms013g {
+		model = "Samsung Galaxy Grand 2";
+		compatible = "samsung,ms013g";
+		lk2nd,match-bootloader = "G7102*";
+
+		lk2nd,dtb-files = "msm8226-samsung-ms013g";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	millet3g {
+		model = "Samsung Galaxy Tab 4 8.0 3G (SM-T331)";
+		compatible = "samsung,millet3g", "samsung,millet";
+		lk2nd,match-bootloader = "T331*";
+
+		lk2nd,dtb-files = "msm8226-samsung-millet3g", "msm8226-samsung-milletwifi";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};

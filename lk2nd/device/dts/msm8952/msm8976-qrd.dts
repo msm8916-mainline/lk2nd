@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8976 0x10001>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 0x0>;
+};
+
+&lk2nd {
+	bq-x5-plus {
+		model = "BQ X5 Plus (Longcheer L9360)";
+		compatible = "longcheer,l9360";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8976-longcheer-l9360";
+
+		panel {
+			compatible = "longcheer,l9360-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_booyi_hx8399b_1080p_command {
+				compatible = "longcheer,l9360-hx8399b";
+			};
+			qcom,mdss_dsi_booyi_hx8399c_1080p_video {
+				compatible = "longcheer,l9360-hx8399c";
+			};
+			qcom,mdss_dsi_truly_nt35695_1080p_command {
+				compatible = "longcheer,l9360-nt35695";
+			};
+			qcom,mdss_dsi_truly_otm1906a_1080p_command {
+				compatible = "longcheer,l9360-otm1906a";
+			};
+			qcom,mdss_dsi_truly_r63350_1080p_video {
+				compatible = "longcheer,l9360-r63350";
+			};
+		};
+	};
+
+	leeco-s2 {
+		model = "Leeco s2";
+		compatible = "leeco,s2";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8976-leeco-s2";
+
+		panel {
+			compatible = "leeco,s2-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_boe_nt35596s_fhd_5p5boe_vdo {
+				compatible = "leeco,s2-nt35596s-boe";
+			};
+			qcom,mdss_dsi_truly_r69006_5p5lg_1080p_cmd {
+				compatible = "leeco,s2-r69006-lg";
+			};
+			qcom,mdss_dsi_boe_nt36760_fhd_5p5boe_cmd {
+				compatible = "leeco,s2-nt36760-boe";
+			};
+		};
+	};
+};

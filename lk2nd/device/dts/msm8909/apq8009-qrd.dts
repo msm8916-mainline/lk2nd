@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id  = <QCOM_ID_APQ8009 2>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0>;
+};
+
+&lk2nd {
+	tb-x104f {
+		model = "Lenovo Tab e10 (TB-X104F)";
+		compatible = "lenovo,tb-x104f";
+
+		lk2nd,dtb-files = "msm8909-lenovo-tb-x104f";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "lenovo,tb-x104f-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_jd9365_boe_video {
+				compatible = "lenovo,jd9365-boe-video";
+			};
+		};
+	};
+};

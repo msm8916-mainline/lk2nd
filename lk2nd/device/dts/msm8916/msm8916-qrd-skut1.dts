@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0x40>;
+};
+
+&lk2nd {
+	gplus-fl8005a {
+		model = "GPLUS FL8005A";
+		compatible = "gplus,fl8005a";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-gplus-fl8005a";
+
+		panel {
+			compatible = "gplus,fl8005a-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394d_800p_video {
+				compatible = "gplus,fl8005a-hx8394d";
+			};
+			qcom,mdss_dsi_nt35521_wxga_video {
+				compatible = "gplus,fl8005a-nt35521";
+			};
+		};
+	};
+};

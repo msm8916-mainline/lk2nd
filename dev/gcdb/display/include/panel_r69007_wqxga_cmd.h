@@ -1,0 +1,383 @@
+/* Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ *       copyright notice, this list of conditions and the following
+ *       disclaimer in the documentation and/or other materials provided
+ *       with the distribution.
+ *     * Neither the name of The Linux Foundation nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#ifndef _PANEL_R69007_WQXGA_CMD_H_
+#define _PANEL_R69007_WQXGA_CMD_H_
+/*---------------------------------------------------------------------------*/
+/* HEADER files                                                              */
+/*---------------------------------------------------------------------------*/
+#include "panel.h"
+
+/*---------------------------------------------------------------------------*/
+/* Panel configuration                                                       */
+/*---------------------------------------------------------------------------*/
+static struct panel_config r69007_wqxga_cmd_panel_data = {
+	"qcom,mdss_dsi_r69007_wqxga_cmd", "dsi:0:", "qcom,mdss-dsi-panel",
+	10, 1, "DISPLAY_1", 0, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0,
+	"qcom,mdss_dsi_r69007_wqxga_cmd"
+};
+
+/*---------------------------------------------------------------------------*/
+/* Panel resolution                                                          */
+/*---------------------------------------------------------------------------*/
+static struct panel_resolution r69007_wqxga_cmd_panel_res = {
+	1440, 2560, 112, 70, 10, 0, 9, 8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+/*---------------------------------------------------------------------------*/
+/* Panel color information                                                   */
+/*---------------------------------------------------------------------------*/
+static struct color_info r69007_wqxga_cmd_color = {
+	24, 0, 0xff, 0, 0, 0
+};
+
+/*---------------------------------------------------------------------------*/
+/* Panel on/off command information                                          */
+/*---------------------------------------------------------------------------*/
+static char r69007_wqxga_cmd_on_cmd0[] = {
+	0x02, 0x00, 0x29, 0xC0,
+	0xB0, 0x00, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd1[] = {
+	0x04, 0x00, 0x29, 0xC0,
+	0xB3, 0x00, 0x00, 0x00,
+};
+
+static char r69007_wqxga_cmd_on_cmd2[] = {
+	0x04, 0x00, 0x29, 0xC0,
+	0xB6, 0x3b, 0xd3, 0x00,
+};
+
+static char r69007_wqxga_cmd_on_cmd3[] = {
+	0x28, 0x00, 0x29, 0xC0,
+	0xC1, 0x80, 0x08, 0x11,
+	0x1F, 0xFC, 0xF2, 0xC9,
+	0x1F, 0x5F, 0x98, 0xB3,
+	0xFE, 0xFF, 0xF7, 0xFE,
+	0xFF, 0xD7, 0x31, 0xF1,
+	0xCB, 0x3F, 0x3F, 0xFD,
+	0xEF, 0x03, 0x24, 0x69,
+	0x18, 0xAA, 0x40, 0x01,
+	0x42, 0x02, 0x08, 0x00,
+	0x01, 0x00, 0x01, 0x00,
+};
+
+static char r69007_wqxga_cmd_on_cmd4[] = {
+	0x0F, 0x00, 0x29, 0xC0,
+	0xC2, 0x01, 0xFA, 0x00,
+	0x04, 0x64, 0x08, 0x00,
+	0x60, 0x00, 0x38, 0x70,
+	0x00, 0x00, 0x00, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd5[] = {
+	0x09, 0x00, 0x29, 0xC0,
+	0xC3, 0x07, 0x01, 0x08,
+	0x01, 0x00, 0x00, 0x00,
+	0x00, 0xFF, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd6[] = {
+	0x12, 0x00, 0x29, 0xC0,
+	0xC4, 0x70, 0x00, 0x00,
+	0x00, 0x02, 0x00, 0x00,
+	0x00, 0x00, 0x02, 0x01,
+	0x00, 0x01, 0x01, 0x00,
+	0x00, 0x00, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd7[] = {
+	0x11, 0x00, 0x29, 0xC0,
+	0xC6, 0x3C, 0x00, 0x3C,
+	0x02, 0x37, 0x01, 0x0E,
+	0x01, 0x02, 0x01, 0x02,
+	0x03, 0x0F, 0x04, 0x3C,
+	0x46, 0xFF, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd8[] = {
+	0x1F, 0x00, 0x29, 0xC0,
+	0xC7, 0x00, 0x16, 0x22,
+	0x2C, 0x3B, 0x48, 0x51,
+	0x5D, 0x40, 0x47, 0x53,
+	0x61, 0x6A, 0x71, 0x78,
+	0x00, 0x16, 0x22, 0x2C,
+	0x3B, 0x48, 0x51, 0x5D,
+	0x40, 0x47, 0x53, 0x61,
+	0x6A, 0x71, 0x78, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd9[] = {
+	0x14, 0x00, 0x29, 0xC0,
+	0xC8, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0xFC, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0xFC, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0xFC, 0x00,
+};
+
+static char r69007_wqxga_cmd_on_cmd10[] = {
+	0x14, 0x00, 0x29, 0xC0,
+	0xC9, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0xFC, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0xFC, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0xFC, 0x00,
+};
+
+static char r69007_wqxga_cmd_on_cmd11[] = {
+	0x14, 0x00, 0x29, 0xC0,
+	0xCB, 0xAA, 0x1E, 0xE3,
+	0x55, 0xF1, 0xFF, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00,
+};
+
+static char r69007_wqxga_cmd_on_cmd12[] = {
+	0x02, 0x00, 0x29, 0xC0,
+	0xCC, 0x07, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd13[] = {
+	0x0B, 0x00, 0x29, 0xC0,
+	0xCD, 0x3A, 0x86, 0x3A,
+	0x86, 0x8D, 0x8D, 0x04,
+	0x04, 0x00, 0x00, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd14[] = {
+	0x11, 0x00, 0x29, 0xC0,
+	0xD0, 0x2A, 0x01, 0x91,
+	0x6A, 0xDC, 0x59, 0x19,
+	0x00, 0x00, 0x00, 0x19,
+	0x99, 0x04, 0x00, 0x00,
+	0x00, 0xFF, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd15[] = {
+	0x21, 0x00, 0x29, 0xC0,
+	0xD3, 0x1B, 0x3B, 0xBB,
+	0x77, 0x77, 0x77, 0xBB,
+	0xB3, 0x33, 0x00, 0x80,
+	0xA7, 0xAF, 0x5B, 0x5B,
+	0x33, 0x33, 0x33, 0xC0,
+	0x00, 0xF2, 0x0F, 0x7D,
+	0x7C, 0xFF, 0x0F, 0x99,
+	0x00, 0x33, 0x00, 0xFF,
+	0xFF, 0xFF, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd16[] = {
+	0x06, 0x00, 0x29, 0xC0,
+	0xD4, 0x57, 0x33, 0x05,
+	0x00, 0xF4, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd17[] = {
+	0x0C, 0x00, 0x29, 0xC0,
+	0xD5, 0x66, 0x00, 0x00,
+	0x01, 0x3D, 0x01, 0x3D,
+	0x00, 0x38, 0x00, 0x38,
+};
+
+static char r69007_wqxga_cmd_on_cmd18[] = {
+	0x22, 0x00, 0x29, 0xC0,
+	0xD7, 0x04, 0xff, 0x23,
+	0x15, 0x75, 0xa4, 0xc3,
+	0x1f, 0xc3, 0x1f, 0xd9,
+	0x07, 0x1c, 0x1f, 0x30,
+	0x8e, 0x87, 0xc7, 0xe3,
+	0xf1, 0xcc, 0xf0, 0x1f,
+	0xf0, 0x0d, 0x70, 0x00,
+	0x2A, 0x00, 0x7e, 0x1d,
+	0x07, 0x00, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd19[] = {
+	0x05, 0x00, 0x29, 0xC0,
+	0xDE, 0x00, 0x3f, 0xff,
+	0x10, 0xFF, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd20[] = {
+	0x02, 0x00, 0x29, 0xC0,
+	0xD6, 0x01, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd21[] = {
+	0x02, 0x00, 0x39, 0xC0,
+	0x35, 0x00, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd22[] = {
+	0x05, 0x00, 0x39, 0xC0,
+	0x2A, 0x00, 0x00, 0x05,
+	0x9F, 0xFF, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd23[] = {
+	0x05, 0x00, 0x39, 0xC0,
+	0x2B, 0x00, 0x00, 0x09,
+	0xFF, 0xFF, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd24[] = {
+	0x02, 0x00, 0x39, 0xC0,
+	0x2C, 0x00, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd25[] = {
+	0x02, 0x00, 0x39, 0xC0,
+	0x36, 0x40, 0xFF, 0xFF,
+};
+
+static char r69007_wqxga_cmd_on_cmd26[] = {
+	0x29, 0x00, 0x05, 0x80
+};
+
+static char r69007_wqxga_cmd_on_cmd27[] = {
+	0x11, 0x00, 0x05, 0x80
+};
+
+static struct mipi_dsi_cmd r69007_wqxga_cmd_on_command[] = {
+	{0x8, r69007_wqxga_cmd_on_cmd0, 0x00},
+	{0x8, r69007_wqxga_cmd_on_cmd1, 0x00},
+	{0x8, r69007_wqxga_cmd_on_cmd2, 0x00},
+	{0x2c, r69007_wqxga_cmd_on_cmd3, 0x00},
+	{0x14, r69007_wqxga_cmd_on_cmd4, 0x00},
+	{0x10, r69007_wqxga_cmd_on_cmd5, 0x00},
+	{0x18, r69007_wqxga_cmd_on_cmd6, 0x00},
+	{0x18, r69007_wqxga_cmd_on_cmd7, 0x00},
+	{0x24, r69007_wqxga_cmd_on_cmd8, 0x00},
+	{0x18, r69007_wqxga_cmd_on_cmd9, 0x00},
+	{0x18, r69007_wqxga_cmd_on_cmd10, 0x00},
+	{0x18, r69007_wqxga_cmd_on_cmd11, 0x00},
+	{0x8, r69007_wqxga_cmd_on_cmd12, 0x00},
+	{0x10, r69007_wqxga_cmd_on_cmd13, 0x00},
+	{0x18, r69007_wqxga_cmd_on_cmd14, 0x00},
+	{0x28, r69007_wqxga_cmd_on_cmd15, 0x00},
+	{0xc, r69007_wqxga_cmd_on_cmd16, 0x00},
+	{0x10, r69007_wqxga_cmd_on_cmd17, 0x00},
+	{0x28, r69007_wqxga_cmd_on_cmd18, 0x00},
+	{0xc, r69007_wqxga_cmd_on_cmd19, 0x00},
+	{0x8, r69007_wqxga_cmd_on_cmd20, 0x00},
+	{0x8, r69007_wqxga_cmd_on_cmd21, 0x00},
+	{0xc, r69007_wqxga_cmd_on_cmd22, 0x00},
+	{0xc, r69007_wqxga_cmd_on_cmd23, 0x00},
+	{0x8, r69007_wqxga_cmd_on_cmd24, 0x00},
+	{0x8, r69007_wqxga_cmd_on_cmd25, 0x00},
+	{0x4, r69007_wqxga_cmd_on_cmd26, 0x78},
+	{0x4, r69007_wqxga_cmd_on_cmd27, 0x14}
+};
+
+#define R69007_WQXGA_CMD_ON_COMMAND 28
+
+
+static char r69007_wqxga_cmdoff_cmd0[] = {
+	0x28, 0x00, 0x05, 0x80
+};
+
+static char r69007_wqxga_cmdoff_cmd1[] = {
+	0x10, 0x00, 0x05, 0x80
+};
+
+static struct mipi_dsi_cmd r69007_wqxga_cmd_off_command[] = {
+	{0x4, r69007_wqxga_cmdoff_cmd0, 0x32},
+	{0x4, r69007_wqxga_cmdoff_cmd1, 0x78}
+};
+
+#define R69007_WQXGA_CMD_OFF_COMMAND 2
+
+
+static struct command_state r69007_wqxga_cmd_state = {
+	0, 1
+};
+
+/*---------------------------------------------------------------------------*/
+/* Command mode panel information                                            */
+/*---------------------------------------------------------------------------*/
+static struct commandpanel_info r69007_wqxga_cmd_command_panel = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+/*---------------------------------------------------------------------------*/
+/* Video mode panel information                                              */
+/*---------------------------------------------------------------------------*/
+static struct videopanel_info r69007_wqxga_cmd_video_panel = {
+	1, 0, 0, 0, 1, 1, 2, 0, 0x9
+};
+
+/*---------------------------------------------------------------------------*/
+/* Lane configuration                                                        */
+/*---------------------------------------------------------------------------*/
+static struct lane_configuration r69007_wqxga_cmd_lane_config = {
+	4, 0, 1, 1, 1, 1, 0
+};
+
+/*---------------------------------------------------------------------------*/
+/* Panel timing                                                              */
+/*---------------------------------------------------------------------------*/
+static const uint32_t r69007_wqxga_cmd_timings[] = {
+	0xDA, 0x34, 0x24, 0x00, 0x64, 0x68, 0x28, 0x38, 0x2A, 0x03, 0x04, 0x00
+};
+
+static const uint32_t r69007_wqxga_thulium_cmd_timings[] = {
+	0x23, 0x1F, 0x07, 0x09, 0x05, 0x03, 0x04, 0xa0,
+	0x23, 0x1F, 0x07, 0x09, 0x05, 0x03, 0x04, 0xa0,
+	0x23, 0x1F, 0x07, 0x09, 0x05, 0x03, 0x04, 0xa0,
+	0x23, 0x1F, 0x07, 0x09, 0x05, 0x03, 0x04, 0xa0,
+	0x23, 0x19, 0x08, 0x08, 0x05, 0x03, 0x04, 0xa0
+};
+
+static struct panel_timing r69007_wqxga_cmd_timing_info = {
+	0x0, 0x04, 0x03, 0x29
+};
+
+/*---------------------------------------------------------------------------*/
+/* Panel reset sequence                                                      */
+/*---------------------------------------------------------------------------*/
+static struct panel_reset_sequence r69007_wqxga_cmd_reset_seq = {
+	{1, 0, 1, }, {2, 5, 120, }, 2
+};
+
+static struct labibb_desc r69007_wqxga_cmd_labibb = {
+	0, 1, 5500000, 5500000, 5500000, 5500000, 3, 3, 1, 0
+};
+
+/*---------------------------------------------------------------------------*/
+/* Backlight setting                                                         */
+/*---------------------------------------------------------------------------*/
+static struct backlight r69007_wqxga_cmd_backlight = {
+	1, 1, 4095, 100, 1, "PMIC_8941"
+};
+
+#define R69007_WQXGA_CMD_PANEL_ON_DELAY 60
+
+#endif /*_PANEL_R69007_WQXGA_CMD_H_*/

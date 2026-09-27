@@ -1,0 +1,143 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8937 0x00>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x00>;
+};
+
+&lk2nd {
+	cedric {
+		model = "Motorola Moto G5 (cedric)";
+		compatible = "motorola,cedric";
+		lk2nd,match-device = "cedric";
+
+		lk2nd,dtb-files = "msm8937-motorola-cedric";
+		
+		panel {
+			compatible = "motorola,cedric-panel", "lk2nd,panel";
+			
+			qcom,mdss_dsi_mot_tianma_497_1080p_video_v0 {
+				compatible = "motorola,cedric-nt35596-tianma";
+			};
+			
+			qcom,mdss_dsi_mot_inx_497_1080p_video_v0 {
+				compatible = "motorola,cedric-nt35596-inx";
+			};
+		};
+	};
+
+	hannah {
+		model = "Motorola Moto E5 Plus (hannah) (MSM8937)";
+		compatible = "motorola,hannah";
+		lk2nd,match-device = "hannah";
+
+		lk2nd,dtb-files = "msm8937-motorola-hannah";
+
+		lk2nd,match-panel;
+		panel {
+			compatible = "motorola,hannah-panel", "lk2nd,panel";
+			qcom,mdss_dsi_mot_tianma_599_hd_video_v0 {
+				compatible = "motorola,hannah-599-tianma";
+			};
+
+			qcom,mdss_dsi_mot_djn_599_hd_video_v0 {
+				compatible = "motorola,hannah-599-djn";
+			};
+
+			qcom,qcom,mdss_dsi_mot_djn_600_hd_video_v0 {
+				compatible = "motorola,hannah-600-djn";
+			};
+		};
+	};
+
+	l38011 {
+		model = "Lenovo K5 Play (l38011)";
+		compatible = "lenovo,l38011";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8937-lenovo-l38011";
+
+		panel {
+			compatible = "lenovo,l38011-panel";
+
+			qcom,mdss_dsi_nt36525_innolux_video {
+				compatible = "lenovo,innolux-nt36525";
+			};
+		};
+	};
+
+	marmite {
+		model = "Wileyfox Swift 2";
+		compatible = "wileyfox,marmite";
+		lk2nd,match-bootloader = "marmite*";
+	};
+
+	montana {
+		model = "Motorola Moto G5S (montana)";
+		compatible = "motorola,montana";
+		lk2nd,match-device = "montana";
+
+		lk2nd,dtb-files = "msm8937-motorola-montana";
+
+		lk2nd,match-panel;
+		panel {
+			compatible = "motorola,montana-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_mot_tianma_521_1080p_video_v0 {
+				compatible = "motorola,montana-r63350-tianma";
+			};
+			qcom,mdss_dsi_mot_inx_521_1080p_video_v0 {
+				compatible = "motorola,montana-nt35596-inx";
+			};
+		};
+	};
+
+	prada {
+		model = "Xiaomi Redmi 4 (prada)";
+		compatible = "xiaomi,prada";
+
+		lk2nd,dtb-files = "msm8937-xiaomi-prada";
+
+		lk2nd,match-panel;
+		panel {
+			compatible = "xiaomi,prada-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394f_boe_720p_video {
+				compatible = "xiaomi,prada-hx8394f-boe";
+			};
+			qcom,mdss_dsi_nt35521s_ctc_720p_video {
+				compatible = "xiaomi,prada-nt35521s-ctc";
+			};
+			qcom,mdss_dsi_ili9881c_tianma_720p_video {
+				compatible = "xiaomi,prada-ili9881c-tianma";
+			};
+		};
+	};
+
+	x00id {
+		model = "Asus ZenFone 4 Max (X00ID)";
+		compatible = "asus,x00id";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8937-asus-x00id";
+
+		panel {
+			compatible = "asus,x00id-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili9881c_fhd_video_dj {
+				compatible = "asus,x00id-ili9881c";
+			};
+
+			qcom,mdss_dsi_ili9885_fhd_video_dj {
+				compatible = "asus,x00id-ili9885";
+			};
+
+			qcom,mdss_dsi_hx8394f_720p_video {
+				compatible = "asus,x00id-hx8394f-720p";
+			};
+		};
+	};
+};

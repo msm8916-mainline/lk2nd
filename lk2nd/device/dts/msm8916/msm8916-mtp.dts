@@ -1,0 +1,116 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	marshall-london {
+		model = "Marshall London";
+		compatible = "marshall,london";
+		lk2nd,match-cmdline = "* hw.id=500";
+
+		//FIXME: lk2nd,dtb-files = "msm8916-marshall-london";
+
+	};
+
+	alto5-vdf {
+		model = "Vodafone Smart prime 6";
+		compatible = "alcatel,alto5-vdf";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-alcatel-alto5-vdf";
+
+		panel {
+			compatible = "alcatel,alto5-vdf-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394a_hd_tdt_video {
+				compatible = "alcatel,hx8394a-tdt";
+			};
+			qcom,mdss_dsi_hx8394a_hd_truly_video {
+				compatible = "alcatel,hx8394a-truly";
+			};
+		};
+	};
+
+	asus-p024 {
+		model = "Asus ZenPad 8.0";
+		compatible = "asus,p024";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-asus-p024";
+
+		panel {
+			compatible = "asus,p024-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili6136s_800x1280_video {
+				compatible = "asus,p024-ili6136s";
+			};
+			qcom,mdss_dsi_nt35521_800x1280_video {
+				compatible = "asus,p024-nt35521";
+			};
+			qcom,mdss_dsi_rm27013_800x1280_video {
+				compatible = "asus,p024-rm27013";
+			};
+			qcom,mdss_dsi_rm68200_800x1280_video {
+				compatible = "asus,p024-rm68200";
+			};
+			qcom,mdss_dsi_kd_rm68200_800x1280_video {
+				compatible = "asus,p024-rm68200-kd";
+			};
+		};
+	};
+
+	/*
+	 * To build for oppo-a37, add LK2ND_ADTBS="msm8916-mtp.dtb" LK2ND_QCDTBS=
+	 * to your make cmdline. The A37 does not boot a lk2nd image that carries a
+	 * QCDT table -- the bootloader gets upset and goes into the phone's
+	 * fastboot. Only an appended DTB works.
+	 */
+	oppo-a37 {
+		model = "OPPO A37";
+		compatible = "oppo,a37";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-oppo-a37";
+
+		panel {
+			compatible = "oppo,a37-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_oppo15399boe_ili9881c_720p_video {
+				compatible = "oppo,a37-boe-ili9881c";
+			};
+			qcom,mdss_dsi_oppo15399tm_nt35521s_720p_video {
+				compatible = "oppo,a37-tm-nt35521s";
+			};
+			qcom,mdss_dsi_oppo15399truly_nt35521s_720p_video {
+				compatible = "oppo,a37-truly-nt35521s";
+			};
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+
+	asus-z010d {
+		model = "Asus Zenfone Max ZC550KL";
+		compatible = "asus,z010d";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_r69339_720p_video:1:none";
+
+		lk2nd,dtb-files = "msm8916-asus-z010d";
+	};
+};

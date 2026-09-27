@@ -1,0 +1,53 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id =
+		<QCOM_ID_MSM8626 0x51 0x81A0>,
+		<QCOM_ID_MSM8626 0x51 0x81C0>,
+		<QCOM_ID_MSM8626 0x51 0x82A0>,
+		<QCOM_ID_MSM8626 0x51 0x82B0>,
+		<QCOM_ID_MSM8626 0x51 0x8300>,
+		<QCOM_ID_MSM8626 0x51 0x8400>,
+		<QCOM_ID_MSM8626 0x52 0x81A0>,
+		<QCOM_ID_MSM8626 0x52 0x81C0>,
+		<QCOM_ID_MSM8626 0x52 0x82A0>,
+		<QCOM_ID_MSM8626 0x52 0x82B0>,
+		<QCOM_ID_MSM8626 0x52 0x8300>,
+		<QCOM_ID_MSM8626 0x52 0x8400>,
+		<QCOM_ID_MSM8626 0x53 0x81A0>,
+		<QCOM_ID_MSM8626 0x53 0x81C0>,
+		<QCOM_ID_MSM8626 0x53 0x82A0>,
+		<QCOM_ID_MSM8626 0x53 0x82B0>,
+		<QCOM_ID_MSM8626 0x53 0x8300>,
+		<QCOM_ID_MSM8626 0x53 0x8400>,
+		<QCOM_ID_MSM8626 0x54 0x81A0>,
+		<QCOM_ID_MSM8626 0x54 0x81C0>,
+		<QCOM_ID_MSM8626 0x54 0x82A0>,
+		<QCOM_ID_MSM8626 0x54 0x82B0>,
+		<QCOM_ID_MSM8626 0x54 0x8300>,
+		<QCOM_ID_MSM8626 0x54 0x8400>,
+		<QCOM_ID_MSM8626 0x55 0x81A0>,
+		<QCOM_ID_MSM8626 0x55 0x81C0>,
+		<QCOM_ID_MSM8626 0x55 0x82A0>,
+		<QCOM_ID_MSM8626 0x55 0x82B0>,
+		<QCOM_ID_MSM8626 0x55 0x8300>,
+		<QCOM_ID_MSM8626 0x55 0x8400>;
+};
+
+&lk2nd {
+	model = "Motorola Moto G 2014 LTE (thea)";
+	compatible = "motorola,thea";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+};

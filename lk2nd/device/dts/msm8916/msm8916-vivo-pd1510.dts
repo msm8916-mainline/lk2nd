@@ -1,0 +1,45 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x16>;
+};
+
+&lk2nd {
+	model = "Vivo Y51L (2015)";
+	compatible = "vivo,pd1510";
+
+	lk2nd,dtb-files = "msm8916-vivo-pd1510";
+
+	panel {
+		compatible = "vivo,pd1510-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_boeb1otm9605a_qhd_vid {
+			compatible = "vivo,boeb1otm9605a-qhd";
+		};
+		qcom,mdss_dsi_boehx8389c_qHD_video {
+			compatible = "vivo,boehx8389c-qhd";
+		};
+		qcom,mdss_dsi_boeotm9605a_qhd_vid_ch {
+			compatible = "vivo,boeotm9605a-qhd-ch";
+		};
+		qcom,mdss_dsi_boeotm9605a_qhd_vid {
+			compatible = "vivo,boeotm9605a-qhd";
+		};
+		qcom,mdss_dsi_tmotm9605a_qhd_vid_ch {
+			compatible = "vivo,tmotm9605a-qhd";
+		};
+		qcom,mdss_dsi_tmotm9605a_qhd_vid {
+			compatible = "vivo,tmotm9605a-qhd";
+		};
+		qcom,mdss_dsi_tryhx8389c_qHD_video_ch {
+			compatible = "vivo,tryhx8389c-qhd-ch";
+		};
+		qcom,mdss_dsi_tryhx8389c_qHD_video {
+			compatible = "vivo,tryhx8389c-qhd";
+		};
+	};
+};

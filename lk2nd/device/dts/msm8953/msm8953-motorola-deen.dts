@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include "msm8953-motorola.dtsi"
+
+/ {
+	model = "deen"; /* bootloader refuses the dtb without this model value. */
+	qcom,board-id = <0x4d 0xc100>;
+};
+
+&lk2nd {
+	model = "Motorola One";
+	compatible = "motorola,deen";
+
+	lk2nd,dtb-files = "msm8953-motorola-deen";
+};

@@ -1,0 +1,50 @@
+name: Build lk2nd
+on:
+  workflow_call:
+    inputs:
+      project:
+        type: string
+        required: true
+      platform:
+        type: string
+        required: true
+      options:
+        type: string
+      artifacts:
+        type: string
+        required: true
+
+jobs:
+  build:
+    name: ${{ inputs.platform }}
+    runs-on: ubuntu-latest
+    steps:
+      # Install dtc for lk2nd (not needed for lk1st without device tree)
+      - name: Install additional build dependencies
+        run: sudo apt-get install -yqq device-tree-compiler
+        if: inputs.project == 'lk2nd'
+      - name: Install cross compiler
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+      - run: arm-none-eabi-gcc --version
+      - uses: actions/checkout@v7
+      - name: Build
+        run: git clean -dxf && make -j$(nproc) TOOLCHAIN_PREFIX=arm-none-eabi-
+             ${{ inputs.options }} ${{ inputs.project }}-${{ inputs.platform }}
+      - name: Check image size
+        run: |
+          IMAGE_FILE="build-${{ inputs.project }}-${{ inputs.platform }}/lk2nd.img"
+          IMAGE_SIZE="$(stat -c%s "$IMAGE_FILE")"
+          echo "Checking $IMAGE_FILE with size=$(( IMAGE_SIZE / 1024 ))KiB"
+          if (( IMAGE_SIZE > 512 * 1024 )); then
+            echo "::warning::The lk2nd.img file is too big!"
+            exit 1
+          fi
+        shell: bash
+        if: inputs.project == 'lk2nd'
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.project }}-${{ inputs.platform }}
+          path: ${{ inputs.artifacts }}
+    env:
+      LKLE_CFLAGS: -Werror

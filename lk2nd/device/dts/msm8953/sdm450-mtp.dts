@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_SDM450 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	rmx1805 {
+		model = "OPPO Realme 2/C1";
+		compatible = "oppo,rmx1805";
+		lk2nd,match-cmdline = "*board_id=S88051*";
+
+		lk2nd,dtb-files="sdm450-oppo-rmx1805";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 85 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic_pon GPIO_PMIC_RESIN 0>;
+			};
+		};
+
+	};
+};

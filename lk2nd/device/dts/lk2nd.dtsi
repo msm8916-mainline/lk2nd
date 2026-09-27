@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <dt-bindings/arm/qcom,ids.h>
+#include <dt-bindings/lk2nd/gpio.h>
+#include <dt-bindings/lk2nd/key-codes.h>
+#include <dt-bindings/lk2nd/sdhc.h>
+
+/ {
+	/*
+	 * Some bootloaders device tree selection logic requires the model property
+	 * to be present in every device tree included in the boot image.
+	 * This is a hack to include the model property in all device trees
+	 * of affected platforms.
+	 */
+	model = _DTB_NAME_;
+
+	lk2nd: lk2nd { };
+
+	lk2nd-hw {
+		/omit-if-no-ref/ tlmm: gpio-tlmm {
+			compatible = "lk2nd,gpio";
+
+			gpio-controller;
+			#gpio-cells = <2>;
+
+			phandle = <GPIO_DEV_PHANDLE(GPIOL_DEVICE_TLMM)>;
+		};
+
+		/omit-if-no-ref/ pmic: gpio-pmic {
+			compatible = "lk2nd,gpio";
+
+			gpio-controller;
+			#gpio-cells = <2>;
+
+			phandle = <GPIO_DEV_PHANDLE(GPIOL_DEVICE_PMIC)>;
+		};
+
+		/omit-if-no-ref/ pmic_pon: gpio-pmic-pon {
+			compatible = "lk2nd,gpio";
+
+			gpio-controller;
+			#gpio-cells = <2>;
+
+			phandle = <GPIO_DEV_PHANDLE(GPIOL_DEVICE_PMIC_PON)>;
+		};
+
+		/omit-if-no-ref/ sdhc2: sdhc-2 {
+			compatible = "lk2nd,sdhci-msm";
+
+			phandle = <SDHC_DEV_PHANDLE(SDHC_SLOT_2)>;
+		};
+
+		/omit-if-no-ref/ sdhc3: sdhc-3 {
+			compatible = "lk2nd,sdhci-msm";
+
+			phandle = <SDHC_DEV_PHANDLE(SDHC_SLOT_3)>;
+		};
+	};
+};

@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * Compile lk2nd with the following flags so that various lk2nd functionality
+ * works fine, e.g. fastboot oem lk_log && fastboot get_staged /dev/stdout
+ *
+ * SCRATCH_ADDR=0x20000000 SCRATCH_ADDR_512MAP=0x20000000 SCRATCH_SIZE_512MAP=0x10000000
+ *
+ * On this device the memory at 0x10000000 (default scratch memory address)
+ * allows writes but any read just returns zeroes. From Linux perspective this
+ * is reserved memory so we need to choose a different memory address.
+ */
+
+/ {
+	/* Actually htc,project-id */
+	qcom,msm-id = <293 0 0>;
+};
+
+&lk2nd {
+	memul {
+		model = "HTC One Mini 2";
+		compatible = "htc,memul";
+		lk2nd,match-cmdline = "* mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_mem_lg_novatek_35521_720p_video *";
+
+		// FIXME: lk2nd,dtb-files = "msm8926-htc-memul";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};

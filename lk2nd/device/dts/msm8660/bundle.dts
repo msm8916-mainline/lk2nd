@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+&lk2nd {
+	hp-touchpad {
+		model = "HP TouchPad (Wi-Fi)";
+		compatible = "hp,topaz";
+		lk2nd,match-cmdline = "*boardtype=topaz-Wifi-pvt*";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 103 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			volume-down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 104 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 40 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+	};
+};

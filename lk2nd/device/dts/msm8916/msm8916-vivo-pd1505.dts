@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 30>;
+};
+
+&lk2nd {
+	model = "Vivo Y31 (2015)";
+	compatible = "vivo,pd1505";
+
+	lk2nd,dtb-files = "msm8916-vivo-pd1505";
+
+	panel {
+		compatible = "vivo,pd1505-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_pd1505l_otm9605a_540p_video {
+			compatible = "vivo,otm9605a";
+		};
+
+		qcom,mdss_dsi_pd1505l_otm9605a_540p_video_baoming {
+			compatible = "vivo,otm9605a-baoming";
+		};
+
+		qcom,mdss_dsi_pd1505l_otm9605a_540p_video_noesd {
+			compatible = "vivo,otm9605a-noesd";
+		};
+
+		qcom,mdss_dsi_pd1505l_otm9605a_540p_video_boenew {
+			compatible = "vivo,otm9605a-boenew";
+		};
+	};
+};

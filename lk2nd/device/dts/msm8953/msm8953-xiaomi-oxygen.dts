@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <26 0>;
+};
+
+&lk2nd {
+	model = "Mi Max 2 (oxygen)";
+	compatible = "xiaomi,oxygen";
+	lk2nd,match-panel;
+
+	lk2nd,dtb-files = "msm8953-xiaomi-oxygen";
+
+	panel {
+		compatible = "xiaomi,oxygen-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_auo_r61322_1080p_video {
+			compatible = "xiaomi,oxygen-r61322-auo";
+		};
+		qcom,mdss_dsi_tianma_r63350_1080p_video {
+			compatible = "xiaomi,oxygen-r63350-tianma";
+		};
+	};
+};

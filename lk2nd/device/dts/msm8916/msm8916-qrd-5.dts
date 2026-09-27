@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 5>;
+};
+
+&lk2nd {
+	lyf-ls5010 {
+		model = "LYF Wind 1 (lyf-ls5010)";
+		compatible = "lyf,ls5010";
+		lk2nd,match-panel;
+
+		//FIXME: lk2nd,dtb-files = "msm8916-lyf-ls5010";
+
+		panel {
+			compatible = "lyf,ls5010-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394_d_hd_video_truly {
+				compatible = "lyf,truly-hx8394";
+			};
+			qcom,mdss_dsi_hx8394_d_hd_video_holitech {
+				compatible = "lyf,holitech-hx8394";
+			};
+			qcom,mdss_dsi_hx8394_f_hd_video_bitland {
+				compatible = "lyf,bitland-hx8394";
+			};
+			qcom,mdss_dsi_kd050m7_hd_video_kd {
+				compatible = "lyf,kd-kd050m7";
+			};
+		};
+	};
+};

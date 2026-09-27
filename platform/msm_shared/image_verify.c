@@ -1,0 +1,231 @@
+/*
+ * Copyright (c) 2011,2013-2015 The Linux Foundation. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *  * Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+#include <x509.h>
+#include <err.h>
+#include <certificate.h>
+#include <crypto_hash.h>
+#include <string.h>
+#include <platform.h>
+#include <openssl/err.h>
+#include "image_verify.h"
+#include "scm.h"
+
+#include <LEOEMCertificate.h>
+
+const char hash_identifier[] = {
+	0x30, 0x31, 0x30, 0x0D, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03,
+	0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20
+};
+
+/*
+ * Returns -1 if decryption failed otherwise size of plain_text in bytes
+ */
+int image_decrypt_signature_rsa(unsigned char *signature_ptr,
+		unsigned char *plain_text, RSA *rsa_key)
+{
+	int ret = -1;
+
+	if (rsa_key == NULL) {
+		dprintf(CRITICAL, "ERROR: Boot Invalid, RSA_KEY is NULL!\n");
+		return ret;
+	}
+
+	ret = RSA_public_decrypt(SIGNATURE_SIZE, signature_ptr, plain_text,
+				 rsa_key, RSA_PKCS1_PADDING);
+	dprintf(SPEW, "DEBUG openssl: Return of RSA_public_decrypt = %d\n",
+		ret);
+
+	return ret;
+}
+
+/*
+ * Returns -1 if decryption failed otherwise size of plain_text in bytes
+ */
+static int
+image_decrypt_signature(unsigned char *signature_ptr, unsigned char *plain_text)
+{
+	/*
+	 * Extract Public Key and Decrypt Signature
+	 */
+	int ret = -1;
+	X509 *x509_certificate = NULL;
+	const unsigned char *cert_ptr = NULL;
+	unsigned int cert_size = 0;
+
+	if (is_vb_le_enabled()) {
+		cert_ptr = (const unsigned char *)LE_OEM_CERTIFICATE;
+		cert_size = sizeof(LE_OEM_CERTIFICATE);
+	} else {
+		cert_ptr = (const unsigned char *)certBuffer;
+		cert_size = sizeof(certBuffer);
+	}
+
+	EVP_PKEY *pub_key = NULL;
+	RSA *rsa_key = NULL;
+
+	/*
+	 * Get Pubkey and Convert the internal EVP_PKEY to RSA internal struct
+	 */
+	if ((x509_certificate = d2i_X509(NULL, &cert_ptr, cert_size)) == NULL) {
+		dprintf(CRITICAL,
+			"ERROR: Image Invalid, X509_Certificate is NULL!\n");
+		goto cleanup;
+	}
+	pub_key = X509_get_pubkey(x509_certificate);
+	if (pub_key == NULL) {
+		dprintf(CRITICAL, "ERROR: Boot Invalid, PUB_KEY is NULL!\n");
+		goto cleanup;
+	}
+
+	rsa_key = EVP_PKEY_get1_RSA(pub_key);
+	if (rsa_key == NULL) {
+		dprintf(CRITICAL, "ERROR: Boot Invalid, RSA_KEY is NULL!\n");
+		goto cleanup;
+	}
+
+	ret = image_decrypt_signature_rsa(signature_ptr, plain_text, rsa_key);
+	dprintf(SPEW, "DEBUG openssl: Return of RSA_public_decrypt = %d\n",
+		ret);
+
+ cleanup:
+	if (rsa_key != NULL)
+		RSA_free(rsa_key);
+	if (x509_certificate != NULL)
+		X509_free(x509_certificate);
+	if (pub_key != NULL)
+		EVP_PKEY_free(pub_key);
+	return ret;
+}
+
+/* Calculates digest of an image and save it in digest buffer */
+void image_find_digest(unsigned char *image_ptr, unsigned int image_size,
+		unsigned hash_type, unsigned char *digest)
+{
+	/*
+	 * Calculate hash of image and save calculated hash on TZ.
+	 */
+	hash_find(image_ptr, image_size, (unsigned char *)digest, hash_type);
+}
+
+#ifdef TZ_SAVE_KERNEL_HASH
+void save_kernel_hash(unsigned char *digest, unsigned hash_type)
+{
+	if (hash_type == CRYPTO_AUTH_ALG_SHA256) {
+		save_kernel_hash_cmd(digest);
+		dprintf(INFO, "Image hash saved.\n");
+	} else
+		dprintf(INFO, "image_verify: hash is not SHA-256.\n");
+}
+#endif
+
+/*
+ * Returns 1 when image is signed and authorized.
+ * Returns 0 when image is unauthorized.
+ * Expects a pointer to the start of image and pointer to start of sig
+ */
+int
+image_verify(unsigned char *image_ptr,
+	     unsigned char *signature_ptr,
+	     unsigned int image_size, unsigned hash_type)
+{
+
+	int ret = -1;
+	int auth = 0;
+	unsigned char *plain_text = NULL;
+	unsigned int digest[8];
+	int hash_size;
+
+	plain_text = (unsigned char *)calloc(sizeof(char), SIGNATURE_SIZE);
+	if (plain_text == NULL) {
+		dprintf(CRITICAL, "ERROR: Calloc failed during verification\n");
+		goto cleanup;
+	}
+
+	/*
+	 * Calculate hash of image and save calculated hash on TZ.
+	 */
+	hash_size =
+	    (hash_type == CRYPTO_AUTH_ALG_SHA256) ? SHA256_SIZE : SHA1_SIZE;
+	image_find_digest(image_ptr, image_size, hash_type,
+			(unsigned char *)&digest);
+#ifdef TZ_SAVE_KERNEL_HASH
+	save_kernel_hash((unsigned char *) &digest, hash_type);
+#endif
+
+	/*
+	 * Decrypt the pre-calculated expected image hash.
+	 * Return value, ret should be equal to hash_size. Otherwise it means a failure. With this check
+	 * we avoid a potential vulnerability due to trailing data placed at the end of digest.
+	 */
+	ret = image_decrypt_signature(signature_ptr, plain_text);
+	if (is_vb_le_enabled()) {
+		int sha256_pkcs1_hash_identifier_len = sizeof(hash_identifier);
+		if (ret != (hash_size + sha256_pkcs1_hash_identifier_len)) {
+			dprintf(CRITICAL, "ERROR: VB: Image Invalid! signature check failed! ret %d\n", ret);
+			goto cleanup;
+		}
+		/*
+		 * Compare the expected hash with the calculated hash.
+		 */
+		if (memcmp(plain_text, hash_identifier, sha256_pkcs1_hash_identifier_len) != 0) {
+			dprintf(CRITICAL,
+				"ERROR: VB: Hash identifier is wrong!\n");
+			goto cleanup;
+		}
+		if (memcmp(plain_text + sha256_pkcs1_hash_identifier_len, digest, hash_size) != 0) {
+			dprintf(CRITICAL,
+				"ERROR: VB: Image Invalid! Please use another image!\n");
+			goto cleanup;
+		}
+	} else {
+		if (ret != hash_size) {
+			dprintf(CRITICAL, "ERROR: Image Invalid! signature check failed! ret %d\n", ret);
+			goto cleanup;
+		}
+		/*
+		 * Compare the expected hash with the calculated hash.
+		 */
+		if (memcmp(plain_text, digest, hash_size) != 0) {
+			dprintf(CRITICAL,
+				"ERROR: Image Invalid! Please use another image!\n");
+			ret = -1;
+			goto cleanup;
+		}
+	}
+
+	/* Authorized image */
+	auth = 1;
+
+	/* Cleanup after complete usage of openssl - cached data and objects */
+ cleanup:
+	if (plain_text != NULL)
+		free(plain_text);
+	EVP_cleanup();
+	CRYPTO_cleanup_all_ex_data();
+	ERR_remove_thread_state(NULL);
+	return auth;
+}

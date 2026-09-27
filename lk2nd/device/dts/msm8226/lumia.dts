@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+&lk2nd {
+	nokia-moneypenny {
+		model = "Nokia Lumia 630";
+		compatible = "nokia,moneypenny";
+	};
+};

@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8909 0>;
+	qcom,board-id = <0x1fb2 0x00>;
+	compatible = "qcom,msm8909-qrd", "qcom,msm8909", "qcom,qrd";
+};
+
+&lk2nd {
+	huawei-scale {
+		model = "Honor 4A (SCL-AL00)";
+		compatible = "huawei,scale";
+		lk2nd,match-panel;
+		lk2nd,dtb-files = "msm8909-huawei-scale";
+
+		panel {
+			compatible = "huawei,scale-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_boe_nt35521s_5_720pxa_video {
+				compatible = "huawei,boe-nt35521s";
+			};
+
+			qcom,mdss_dsi_boe_nt35521_5_720pxa_video {
+				compatible = "huawei,boe-nt35521";
+			};
+
+			qcom,mdss_dsi_boe_otm1284a_5_720pxa_video {
+				compatible = "huawei,boe-otm1284a";
+			};
+
+			qcom,mdss_dsi_cmi_nt35521s_5_720pxa_video {
+				compatible = "huawei,cmi-nt35521s";
+			};
+
+			qcom,mdss_dsi_cmi_otm1283a_5_720pxa_video {
+				compatible = "huawei,cmi-otm1283a";
+			};
+
+			qcom,mdss_dsi_tianma_otm1287a_5_720pxa_video {
+				compatible = "huawei,tianma-otm1287a";
+			};
+		};
+
+		regulator-lcd-io {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 32 GPIO_ACTIVE_HIGH>;
+		};
+
+		regulator-lcd-3v3 {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 95 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};

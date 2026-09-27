@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8956 0>;
+	qcom,board-id = <QCOM_BOARD_ID_DRAGONBOARD 0x27>;
+
+	/* Bootloader requires those cpu nodes, or device crashes (900e) */
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@100 {
+			device_type = "cpu";
+			reg = <0x100>;
+		};
+
+		cpu@101 {
+			device_type = "cpu";
+			reg = <0x101>;
+		};
+
+		cpu@102 {
+			device_type = "cpu";
+			reg = <0x102>;
+		};
+	};
+};
+
+&lk2nd {
+	model = "Zebra TC56 (ironman)";
+	compatible = "zebra,ironman";
+	lk2nd,match-panel;
+
+	lk2nd,dtb-files = "msm8956-zebra-ironman";
+
+	panel {
+		compatible = "zebra,ironman-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_tc7x_ili9881c_5p0inch_720p_video {
+			compatible = "zebra,tc7x_ili9881c_5p0inch_720p_video";
+		};
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 0x72 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+};

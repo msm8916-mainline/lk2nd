@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8939 0x30000>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 11>,
+			<QCOM_BOARD_ID(QRD, 2, 0) 11>;
+};
+
+&lk2nd {
+	model = "Xiaomi Redmi 3";
+	compatible = "xiaomi,ido";
+
+	//FIXME: lk2nd,dtb-files = "msm8916-xiaomi-ido";
+
+	panel {
+		compatible = "xiaomi,ido-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_ili9881c_tianma_720p_video {
+			compatible = "xiaomi,tianma-ili9881c";
+		};
+		qcom,mdss_dsi_nt35521s_ebbg_720p_video {
+			compatible = "xiaomi,nt35521s-ebbg";
+		};
+		qcom,mdss_dsi_nt35596_1080p_video {
+			compatible = "xiaomi,nt35596";
+		};
+		qcom,mdss_dsi_r63350_1080p_video {
+			compatible = "xiaomi,r63350";
+		};
+		qcom,mdss_dsi_nt35596_1080p_skuk_video {
+			compatible = "mdss,nt35596-skuk";
+		};
+		qcom,mdss_dsi_hx8394f_boe_720p_video {
+			compatible = "xiaomi,hx8394f-boe";
+		};
+	};
+};

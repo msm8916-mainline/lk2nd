@@ -1,0 +1,53 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 7>,
+			<QCOM_BOARD_ID_QRD 12>;
+};
+
+&lk2nd {
+	wingtech-wt88047 {
+		model = "Xiaomi Redmi 2 (Wingtech WT88047)";
+		compatible = "wingtech,wt88047";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8916-wingtech-wt88047";
+
+		panel {
+			compatible = "wingtech,wt88047-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_r69431_720p_video {
+				compatible = "wingtech,sharp-r69431";
+			};
+			qcom,mdss_dsi_nt35521_720p_video {
+				compatible = "wingtech,auo-nt35521";
+			};
+			qcom,mdss_dsi_nt35521s_720p_video {
+				compatible = "wingtech,boe-nt35521s";
+			};
+			qcom,mdss_dsi_nt35521_ofilm_720p_video {
+				compatible = "wingtech,ofilm-nt35521";
+			};
+			/* qcom,mdss_dsi_otm1285a_720p_video is not supported */
+			qcom,mdss_dsi_r61308_720p_video {
+				compatible = "wingtech,auo-r61308";
+			};
+			qcom,mdss_dsi_otm1285a_otp_720p_video {
+				compatible = "wingtech,ebbg-otm1285a";
+			};
+			qcom,mdss_dsi_r61308_s88047a1_720p_video {
+				compatible = "wingtech,auo-r61308";
+			};
+		};
+
+		smb1360 {
+			compatible = "wingtech,smb1360-wt88047", "qcom,smb1360";
+			bat-id-gpios = <&pmic 3 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN | GPIO_BIAS_DISABLE |
+						 GPIO_DRIVE_STR(3) | GPIO_PMIC_VIN_SEL(0))>;
+		};
+	};
+};

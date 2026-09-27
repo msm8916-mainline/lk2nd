@@ -1,0 +1,25 @@
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/*
+ * To build for 360-qk1605-a01, add LK2ND_ADTBS="msm8976-360-qk1605-a01.dtb"
+ * to your make cmdline.
+ * qk1605-a01 does not work with all dtbs enabled; the bootloader gets upset
+ * and goes into the phone's fastboot.
+ *
+ * lk2nd cannot be flashed in fastboot mode
+ * Instead, use a Rooted shell (with dd command), EDL or a custom recovery
+ * (e.g. TWRP) to write the lk2nd.img to the boot partition.
+ */
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8976 0x10001>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x0>;
+	qiku,pcb-id = <0xa>;
+	qiku,project-id = "1605_A01";
+};
+
+&lk2nd {
+	model = "QiKU 360 N5 (QK1605-A01)";
+	compatible = "360,qk1605-a01", "360,qk1605";
+};

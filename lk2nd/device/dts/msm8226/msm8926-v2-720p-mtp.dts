@@ -1,0 +1,66 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8926 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	coolpad-8730l {
+		model = "Coolpad 8730L";
+		compatible = "coolpad,8730l";
+		lk2nd,match-panel;
+
+		//FIXME: lk2nd,dtb-files = "msm8926-coolpad-8730l";
+
+		panel {
+			compatible = "lk2nd,panel";
+			qcom,mdss_dsi_otm1283a_boyi_hd_video {};
+			qcom,mdss_dsi_hx8394a_lide_hd_video {};
+			qcom,mdss_dsi_hx8394a_yashi_hd_video {};
+			qcom,mdss_dsi_hx8394a_yashi_cmi_hd_video {};
+			qcom,mdss_dsi_otm1283a_boyi_auo_hd_video {};
+			qcom,mdss_dsi_otm1283a_lide_cpt_hd_video {};
+		};
+	};
+
+	sony-eagle {
+		/*
+		 * To build for sony-eagle, boot the downstream kernel and run the following
+		 * command in adb shell:
+		 *
+		 * dmesg | grep LCD_ID
+		 *
+		 * Then pass appropriate LK2ND display based on LCD_ID value:
+		 * make ... LK2ND_DISPLAY="innolux_qhd_video" (LCD_ID=0)
+		 *			   or
+		 *			   "truly_qhd_video" (LCD_ID=1)
+		 *
+		 * `LK2ND_DISPLAY` selects the appropriate display driver. This is required
+		 * because the screen initialization needs specific configuration.
+		 */
+
+		model = "Sony Xperia M2 (eagle)";
+		compatible = "sony,eagle";
+		lk2nd,match-bootloader = "s1*";
+
+		lk2nd,dtb-files = "msm8926-sony-xperia-yukon-eagle";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic_pon GPIO_PMIC_RESIN 0>;
+			};
+		};
+	};
+};

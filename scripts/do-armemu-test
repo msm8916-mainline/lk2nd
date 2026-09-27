@@ -1,0 +1,11 @@
+#!/bin/sh
+
+export PROJECT=armemu-test
+
+if [ ! -f blk.bin ]; then
+	dd if=/dev/zero of=blk.bin bs=1024k count=16
+fi
+
+make -j8 -C ../armemu &&
+make -j8 &&
+(cd build-$PROJECT; ../../armemu/build-generic/armemu)

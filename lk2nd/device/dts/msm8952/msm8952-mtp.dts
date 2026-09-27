@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8952 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};
+
+&lk2nd {
+	athene {
+		model = "Motorola Moto G4 / G4Plus (athene) (MSM8952)";
+		compatible = "motorola,athene";
+		lk2nd,match-device = "athene*";
+
+		panel {
+			compatible = "motorola,athene-panel", "lk2nd,panel";
+			qcom,mdss_dsi_mot_lgd_546_1080p_cmd_v0 {
+				compatible = "motorola,athene-546-lgd";
+			};
+
+			qcom,mdss_dsi_mot_tdi_546_1080p_cmd_v0 {
+				compatible = "motorola,athene-546-tdi";
+			};
+		};
+	};
+
+	idol4 {
+		model = "Alcatel Idol 4";
+		compatible = "alcatel,idol4";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8952-alcatel-idol4";
+
+		panel {
+			compatible = "alcatel,idol4-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_nt35596_1080p_video {
+				compatible = "alcatel,idol4-nt35596";
+			};
+		};
+	};
+};

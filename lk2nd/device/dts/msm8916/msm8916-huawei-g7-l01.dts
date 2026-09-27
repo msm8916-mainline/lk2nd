@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <8039 4>;
+};
+
+&lk2nd {
+	model = "Huawei Ascend G7-L01";
+	compatible = "huawei,g7-l01", "huawei,g7";
+
+	lk2nd,dtb-files = "msm8916-huawei-g7";
+
+	panel {
+		compatible = "huawei,g7-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_boe_nt35521_5p5_720p_video {
+			compatible = "huawei,boe-nt35521";
+		};
+		qcom,mdss_dsi_cmi_nt35521_5p5_720p_video {
+			compatible = "huawei,cmi-nt35521";
+		};
+		qcom,mdss_dsi_tianma_nt35521_5p5_720p_video {
+			compatible = "huawei,tianma-nt35521";
+		};
+	};
+};

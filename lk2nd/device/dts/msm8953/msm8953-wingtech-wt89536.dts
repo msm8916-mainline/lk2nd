@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8953 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 2>;
+};
+
+&lk2nd {
+	model = "CMCC N2 / YU Yureka 2";
+	compatible = "wingtech,wt89536";
+
+	lk2nd,dtb-files = "msm8953-wingtech-wt89536";
+};

@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: BSD-3-Clause
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_SDA429W 0x00>;
+	qcom,board-id = <0x10b 0x0a>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	model = "Fossil Gen 6 (hoki)";
+	compatible = "fossil,hoki";
+	lk2nd,match-bootloader = "HOKI*";
+
+	lk2nd,dtb-files = "sdm429w-fossil-hoki";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&tlmm 35 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+
+		down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&pmic_pon GPIO_PMIC_RESIN 0>;
+		};
+
+		power {
+			lk2nd,code = <KEY_POWER>;
+			gpios = <&pmic_pon GPIO_PMIC_PWRKEY 0>;
+		};
+	};
+};

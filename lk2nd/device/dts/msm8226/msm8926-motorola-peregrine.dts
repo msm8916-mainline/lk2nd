@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8626 0x44 0x82D0>;
+};
+
+&lk2nd {
+	model = "Motorola Moto G 4G 2013";
+	compatible = "motorola,peregrine";
+
+	lk2nd,dtb-files = "msm8926-motorola-peregrine";
+};

@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8940 0>;
+	qcom,board-id = <0x1fa5 0x00>,
+			<0x1fb5 0x00>;
+};
+
+&lk2nd {
+	model = "Huawei Enjoy 7 Plus";
+	compatible = "huawei,trt-tl10";
+
+	lk2nd,dtb-files = "msm8940-huawei-trt-tl10";
+	
+	panel {
+		compatible = "huawei,trt-tl10-panel", "lk2nd,panel";
+
+		lcdkit_trt_tl10_vd_boe_td4100_5p5_720p_video {
+			compatible = "boe,td4100-5p5xa";
+		};
+	};
+};

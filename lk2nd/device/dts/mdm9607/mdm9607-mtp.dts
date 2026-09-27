@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MDM9607 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+};

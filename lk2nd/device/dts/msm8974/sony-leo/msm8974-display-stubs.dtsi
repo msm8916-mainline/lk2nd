@@ -1,0 +1,71 @@
+/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/ {
+	soc {
+		msmgpio: gpio {
+			compatible = "qcom,msm-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+
+		mdss_mdp: qcom,mdss_mdp {
+			compatible = "qcom,mdss_mdp";
+		};
+
+		mdss_dsi0: qcom,mdss_dsi {
+			compatible = "qcom,mdss-dsi-ctrl";
+			cell-index = <0>;
+			qcom,mdss-mdp = <&mdss_mdp>;
+			qcom,platform-reset-gpio = <&pm8941_gpios 19 0>;
+			qcom,platform-enable-gpio = <&msmgpio 58 0>;
+			qcom,platform-te-gpio = <&msmgpio 12 0>;
+			qcom,platform-strength-ctrl = [ff 06];
+			qcom,platform-bist-ctrl = [00 00 b1 ff 00 00];
+			qcom,platform-regulator-settings = [07 09 03 00 20 00 01];
+			qcom,platform-lane-config = [00 00 00 00 00 00 00 01 97
+				00 00 00 00 00 00 00 01 97
+				00 00 00 00 00 00 00 01 97
+				00 00 00 00 00 00 00 01 97
+				00 c0 00 00 00 00 00 01 bb];
+		};
+
+		spmi_bus: qcom,spmi {
+			compatible = "qcom,spmi-pmic-arb";
+			cell-index = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			pm8941_lsid0: qcom,pm8941@0 {
+				reg = <0x0>;
+
+				pm8941_gpios: gpios {
+					compatible = "qcom,qpnp-pin";
+					gpio-controller;
+					#gpio-cells = <2>;
+				};
+			};
+
+			pm8941_lsid1: qcom,pm8941@1 {
+				reg = <0x1>;
+				#address-cells = <1>;
+				#size-cells = <1>;
+
+				pm8941_wled: qcom,leds@d800 {
+					compatible = "qcom,leds-qpnp";
+					reg = <0xd800 0x100>;
+					label = "wled";
+				};
+			};
+		};
+	};
+};

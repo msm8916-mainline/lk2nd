@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8956 0>;
+	qcom,board-id = <25 0>;
+
+	/* Bootloader requires those cpu nodes, or shuts device down */
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@100 {
+			device_type = "cpu";
+			reg = <0x100>;
+		};
+
+		cpu@101 {
+			device_type = "cpu";
+			reg = <0x101>;
+		};
+
+		cpu@102 {
+			device_type = "cpu";
+			reg = <0x102>;
+		};
+	};
+};
+
+&lk2nd {
+	model = "Mi Max (hydrogen)";
+	compatible = "xiaomi,hydrogen";
+	lk2nd,match-panel;
+
+	lk2nd,dtb-files = "msm8956-xiaomi-hydrogen";
+
+	panel {
+		compatible = "xiaomi,hydrogen-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_auo_r61322_1080p_video {
+			compatible = "xiaomi,hydrogen-r61322-auo";
+		};
+		qcom,mdss_dsi_tianma_r63350_1080p_video {
+			compatible = "xiaomi,hydrogen-r63350-tianma";
+		};
+	};
+};

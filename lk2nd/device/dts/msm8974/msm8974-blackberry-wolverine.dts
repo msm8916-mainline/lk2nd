@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8974PRO_AA 0xf07404b2 0x10001>;
+};
+
+&lk2nd {
+	wolverine {
+		model = "BlackBerry Passport";
+		compatible = "blackberry,wolverine";
+		lk2nd,match-cmdline = "*wolverine*";
+
+		lk2nd,dtb-files = "msm8974-blackberry-wolverine";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 22 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			mute {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&pmic 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+			down {
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+				gpios = <&pmic 23 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+		};
+	};
+};

@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_SDM632 0>;
+	qcom,board-id = <QCOM_BOARD_ID_QRD 1>;
+	/* Bootloader appears to really want to access symbols */
+	__symbols__ {};
+};
+
+&lk2nd {
+	casuarina {
+		model = "Vsmart Joy 3 (casuarina)";
+		compatible = "vsmart,casuarina";
+		lk2nd,dtb-files = "sdm632-vsmart-casuarina";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "vsmart,casuarina-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ft8006p_hlt_1600_video {
+				compatible = "vsmart,casuarina-ft8006p-hlt";
+				touchscreen-compatible = "focaltech,ft8201";
+			};
+
+			qcom,mdss_dsi_ft8006p_truly_1600_video {
+				compatible = "vsmart,casuarina-ft8006p-truly";
+				touchscreen-compatible = "focaltech,ft8201";
+			};
+
+			qcom,mdss_dsi_icnl9911s_byd_1600_video {
+				compatible = "vsmart,casuarina-icnl9911s-byd";
+				/* No touchscreen driver available yet */
+			};
+		};
+	};
+};
