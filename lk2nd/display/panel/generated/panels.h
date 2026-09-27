@@ -17,6 +17,7 @@
 #include "lk_panel_innolux_qhd_video.h"
 #include "lk_panel_nt35510s_fwvga_cmd.h"
 #include "lk_panel_orise8012a_fwvga_cmd.h"
+#include "lk_panel_xz_nt51021_video.h"
 #include "lk_panel_r61308_720p_video.h"
 #include "lk_panel_r69431_720p_video.h"
 #include "lk_panel_tc7x_ili9881c_5p0inch_720p_video.h"
