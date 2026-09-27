@@ -34,6 +34,7 @@
 #include <msm_panel.h>
 #include <mipi_dsi.h>
 #include <pm8x41.h>
+#include <spmi.h>
 #include <pm8x41_wled.h>
 #include <qpnp_wled.h>
 #include <qpnp_lcdb.h>
@@ -293,11 +294,27 @@ static int msm8952_wled_backlight_ctrl(uint8_t enable)
 static int pwm_backlight_ctrl(uint8_t enable)
 {
 	if (enable) {
+		pmic_spmi_reg_write(0x1BCD0, 0xA5);
+		pmic_spmi_reg_write(0x1BCE3, 0x02);
 		pm_pwm_enable(false);
 		pm_pwm_config(PWM_DUTY_US, PWM_PERIOD_US);
+		pmic_spmi_reg_write(0x1BCD0, 0xA5);
+		pmic_spmi_reg_write(0x1BCE3, 0x02);
 		pm_pwm_enable(true);
+		pmic_spmi_reg_write(0xA341, 0x00);
+		pmic_spmi_reg_write(0xA340, 0x1A);
+		pmic_spmi_reg_write(0xA346, 0x80);
+		dprintf(INFO, "bl: LPG=%02x..%02x SEC=%02x E3=%02x MPP4=%02x %02x %02x\n",
+			pmic_spmi_reg_read(0x1BC41),
+			pmic_spmi_reg_read(0x1BC46),
+			pmic_spmi_reg_read(0x1BCD0),
+			pmic_spmi_reg_read(0x1BCE3),
+			pmic_spmi_reg_read(0xA340),
+			pmic_spmi_reg_read(0xA341),
+			pmic_spmi_reg_read(0xA346));
 	} else {
 		pm_pwm_enable(false);
+		pmic_spmi_reg_write(0xA346, 0x00);
 	}
 
 	return NO_ERROR;
@@ -311,12 +328,13 @@ int target_backlight_ctrl(struct backlight *bl, uint8_t enable)
 	if (bl->bl_interface_type == BL_DCS)
 		return ret;
 
-	if ((pmic_type == PMIC_IS_PMI632) &&
-		(bl->bl_interface_type == BL_PWM)) {
-		ret = pwm_backlight_ctrl(enable);
-	} else if (pmic_type == PMIC_IS_PM8916 || pmic_type == PMIC_IS_PM660) {
+	if (bl->bl_interface_type == BL_PWM) {
+		dprintf(INFO, "pwm ctrl enable=%d duty=%d period=%d\n",
+			enable, PWM_DUTY_US, PWM_PERIOD_US);
 		ret = pwm_backlight_ctrl(enable);
 	} else {
+		dprintf(INFO, "%s: pmic=%d bl_type=%d -> wled\n", __func__,
+			pmic_type, bl->bl_interface_type);
 		ret = msm8952_wled_backlight_ctrl(enable);
 	}
 	return ret;
@@ -441,7 +459,7 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	} else if (platform_is_msm8937()) {
 		reset_gpio.pin_id = 60;
 		bkl_gpio.pin_id = 98;
-		enable_gpio.pin_id = 99;
+		enable_gpio.pin_id = 24;
 	} else if (platform_is_msm8917()) {
 		reset_gpio.pin_id = 60;
 		bkl_gpio.pin_id = 98;
@@ -471,6 +489,19 @@ int target_panel_reset(uint8_t enable, struct panel_reset_sequence *resetseq,
 	}
 
 	if (enable) {
+		if (platform_is_msm8937()) {
+			static const uint8_t lcd_pwr_pins[] = { 47, 131, 24 };
+			for (unsigned i = 0; i < sizeof(lcd_pwr_pins); i++) {
+				gpio_tlmm_config(lcd_pwr_pins[i], 0,
+					GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA,
+					GPIO_ENABLE);
+				gpio_set_dir(lcd_pwr_pins[i], GPIO_STATE_HIGH);
+				dprintf(INFO, "LCD_PWR: gpio %u high\n",
+					lcd_pwr_pins[i]);
+			}
+			mdelay(100);
+		}
+
 		if (pinfo->mipi.use_enable_gpio && !platform_is_msm8956()) {
 			gpio_tlmm_config(enable_gpio.pin_id, 0,
 				enable_gpio.pin_direction, enable_gpio.pin_pull,
