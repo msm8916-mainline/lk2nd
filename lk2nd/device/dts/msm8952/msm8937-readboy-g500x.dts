@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8937 0>;
+	qcom,board-id = <0x2000b 0>;
+};
+
+&lk2nd {
+	model = "Readboy G500X (RBG19313)";
+	compatible = "readboy,g500x";
+
+	lk2nd,dtb-files = "msm8937-readboy-g500x";
+
+	regulator-panel-vio {
+		compatible = "regulator-fixed";
+		gpios = <&tlmm 47 0x0>;
+	};
+	regulator-panel-vci {
+		compatible = "regulator-fixed";
+		gpios = <&tlmm 131 0x0>;
+	};
+	regulator-panel-enable {
+		compatible = "regulator-fixed";
+		gpios = <&tlmm 24 0x0>;
+	};
+};

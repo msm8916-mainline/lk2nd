@@ -1,0 +1,38 @@
+/dts-v1/;
+
+/ {
+	model = "Readboy G500X";
+	compatible = "qcom,msm8937";
+
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+
+	lk2nd {
+		compatible = "readboy,g500x";
+		model = "Readboy G500X";
+
+		regulator-panel-vio {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 47 0x0>;
+		};
+		regulator-panel-vci {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 131 0x0>;
+		};
+		regulator-panel-enable {
+			compatible = "regulator-fixed";
+			gpios = <&tlmm 24 0x0>;
+		};
+	};
+
+	lk2nd-hw {
+		tlmm: gpio-tlmm {
+			compatible = "lk2nd,gpio";
+
+			gpio-controller;
+			#gpio-cells = <0x2>;
+
+			phandle = <0x47494f01>;
+		};
+	};
+};
