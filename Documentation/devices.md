@@ -91,6 +91,7 @@
 - Nokia 8000 4G
 - Nokia 8110 4G
 - Orbic Journey V (RC2200L)
+- Panasonic Toughbook FZ-T1
 - ZTE N818S (sapphire)
 - Lenovo Tab e10 (TB-X104F)
 
