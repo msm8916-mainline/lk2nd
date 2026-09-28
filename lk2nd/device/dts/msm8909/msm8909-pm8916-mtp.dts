@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8909 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 2>;
+};
+
+&lk2nd {
+	panasonic-fz-t1 {
+		model = "Panasonic Toughbook FZ-T1";
+		compatible = "panasonic,fz-t1";
+		lk2nd,match-cmdline = "*androidboot.panaserialno=*";
+		lk2nd,match-panel;
+
+		lk2nd,dtb-files = "msm8909-panasonic-fz-t1";
+
+		panel {
+			compatible = "panasonic,fz-t1-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_hx8394f_720p_video {
+				compatible = "panasonic,fz-t1-hx8394f";
+			};
+		};
+	};
+};
