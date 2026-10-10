@@ -7,7 +7,32 @@
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8953 0>;
-	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>,
+			<QCOM_BOARD_ID_MTP 1>,
+			<QCOM_BOARD_ID_MTP 2>,
+			<QCOM_BOARD_ID_MTP 3>,
+			<QCOM_BOARD_ID_MTP 4>,
+			<QCOM_BOARD_ID_MTP 5>;
+
+	/* required for j7poplte bootloader */ 
+	soc {
+		qcom,memshare {
+			memory-region = <&samsung_satiator>;
+			qcom,client_4 {};
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+		
+		sec_debug_region@0 {};
+
+		lk_region@0 {};
+
+		samsung_satiator: modem_shared_mem_region@0x93000000 {};
+	};
 };
 
 &lk2nd {
@@ -70,6 +95,22 @@
 			};
 			qcom,mdss_dsi_samsung_s6e3fa3x01_1080p_5p2_command {
 				compatible = "nubia,samsung-s6e3fa3x01";
+			};
+		};
+	};
+
+	j7popltespr {
+		model = "Samsung J7 Perx";
+		compatible = "samsung,j7popltespr";
+		lk2nd,match-bootloader = "J727P*";
+		
+		lk2nd,dtb-files = "msm8953-samsung-j7popltespr";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 86 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 			};
 		};
 	};
