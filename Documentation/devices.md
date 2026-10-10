@@ -79,6 +79,7 @@
 
 - Acer Liquid Z330 (T01)
 - CAT B35
+- Doro 8035
 - FarEasTone Smart 506 (quirky - see comment in `lk2nd/device/dts/msm8909/msm8909-1gb-qrd-skuc.dts`)
 - Haier G151 / Andromax A (quirky - see comment in `lk2nd/device/dts/msm8909/msm8909-1gb-qrd-skuc.dts`)
 - Huawei Honor 4A - scale
