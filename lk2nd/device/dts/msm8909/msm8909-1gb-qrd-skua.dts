@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8909 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 0) 0>;
+};
+
+&lk2nd {
+	doro-dsb0170 {
+		model = "Doro 8035";
+		compatible = "doro,dsb0170";
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "doro,dsb0170-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_ili9881d_720p_video {
+				compatible = "doro,dsb0170-ili9881d";
+			};
+
+			qcom,mdss_dsi_ili9881c_720p_video {
+				compatible = "doro,dsb0170-ili9881c";
+			};
+		};
+	};
+};
