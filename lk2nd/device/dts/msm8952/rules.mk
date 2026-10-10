@@ -35,3 +35,6 @@ ADTBS += \
 DTBS += \
 	$(LOCAL_DIR)/msm8917-huawei-agassi.dtb \
 	$(LOCAL_DIR)/msm8917-huawei-kobe.dtb \
+
+QCDTBS += \
+	$(LOCAL_DIR)/msm8917-mtp.dtb \

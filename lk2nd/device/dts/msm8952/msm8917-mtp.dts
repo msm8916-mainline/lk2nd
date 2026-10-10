@@ -7,7 +7,34 @@
 
 / {
 	qcom,msm-id = <QCOM_ID_MSM8917 0>;
-	qcom,board-id = <QCOM_BOARD_ID_MTP 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0>,
+			<QCOM_BOARD_ID_MTP 1>,
+			<QCOM_BOARD_ID_MTP 2>,
+			<QCOM_BOARD_ID_MTP 3>,
+			<QCOM_BOARD_ID_MTP 4>,
+			<QCOM_BOARD_ID_MTP 5>,
+			<QCOM_BOARD_ID_MTP 6>;
+
+	/* required for j3poplte bootloader */ 
+        soc {
+                qcom,memshare {
+                        memory-region = <&samsung_satiator>;
+                        qcom,client_4 {};
+                };
+        };
+
+        reserved-memory {
+                #address-cells = <2>;
+                #size-cells = <2>;
+                ranges;
+
+                sec_debug_region@0 {};
+
+                lk_region@0 {};
+
+                samsung_satiator: modem_shared_mem_region@0x93000000 {};
+        };
+
 };
 
 &lk2nd {
@@ -92,6 +119,28 @@
 			qcom,mdss_dsi_hx_otm1901a_720p_video {
 				compatible = "xiaomi,ugglite-otm1901a-hx";
 				touchscreen-compatible = "goodix,gt911";
+			};
+		};
+	};
+
+	j3popltespr {
+		model = "Samsung J3 Emerge (SM-J327P)";
+		compatible = "samsung,j3popltespr";
+		lk2nd,match-bootloader = "J327P*";
+
+		lk2nd,dtb-files = "msm8917-samsung-j3popltespr";
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-up {
+				lk2nd,code = <KEY_VOLUMEUP>;
+				gpios = <&tlmm 127 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 128 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 			};
 		};
 	};
