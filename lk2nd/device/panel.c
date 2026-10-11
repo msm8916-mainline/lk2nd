@@ -6,6 +6,7 @@
 #include <libfdt.h>
 #include <stdlib.h>
 #include <string.h>
+#include <lk2nd/util/lkfdt.h>
 
 #include "device.h"
 
@@ -22,7 +23,8 @@ static int lk2nd_panel_detect(const void *dtb, int node)
 {
 	struct lk2nd_panel *panel = &lk2nd_dev.panel;
 	const char *old, *new, *ts, *name;
-	int old_len, new_len, ts_len, name_len;
+	const char * const* dtb_files;
+	int old_len, new_len, ts_len, name_len, dt_len;
 	bool replace_mode;
 	const fdt32_t *sony_adc_prop;
 
@@ -63,6 +65,12 @@ static int lk2nd_panel_detect(const void *dtb, int node)
 			return node;
 		}
 	}
+
+	dtb_files = (const char * const*)lkfdt_stringlist_get_all(dtb, node, "lk2nd,dtb-files", &dt_len);
+	if (dt_len < 0)
+		dprintf(CRITICAL, "Failed to read 'lk2nd,dtb-files in panel node': %d\n", dt_len);
+	else
+		lk2nd_dev.dtbfiles = dtb_files;
 
 	new = getprop_str(dtb, node, "compatible", &new_len);
 	if (!new || new_len < 0)
