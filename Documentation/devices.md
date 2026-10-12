@@ -152,6 +152,7 @@
 - Huawei Maimang 5 / Nova Plus / G9 (Plus) (milan)
 - Huawei Nova (cannes)
 - Lenovo P2 (kuntao)
+- Lenovo M10 FHD Rel (TB-X605FC) (requires flashing [minimal DTBO](#minimal-dtb-overlay))
 - Lenovo ThinkSmart View (cd-18781y) (quirky - see comments in `lk2nd/device/dts/msm8953/apq8053-lenovo-cd-18781y.dts`)
 - Meizu M6 Note (m1721)
 - Meizu M15 (m1871)
