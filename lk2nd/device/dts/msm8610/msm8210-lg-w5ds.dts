@@ -9,7 +9,7 @@
 };
 
 &lk2nd {
-	model = "LG L65 Dual(w5ds)";
+	model = "LG L70 Dual(w5ds)";
 	compatible = "lge,w5ds";
 
 	// FIXME: lk2nd,dtb-files = "...";
