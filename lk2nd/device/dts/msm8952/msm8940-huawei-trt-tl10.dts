@@ -18,6 +18,10 @@
 	panel {
 		compatible = "huawei,trt-tl10-panel", "lk2nd,panel";
 
+		lcdkit_trt_tl10_va_boe_td4100_5p5_720p_video {
+			compatible = "boe,td4100-5p5xa";
+		};
+
 		lcdkit_trt_tl10_vd_boe_td4100_5p5_720p_video {
 			compatible = "boe,td4100-5p5xa";
 		};
