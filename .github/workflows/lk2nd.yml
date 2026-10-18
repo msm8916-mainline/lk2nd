@@ -25,6 +25,9 @@ jobs:
         if: inputs.project == 'lk2nd'
       - name: Install cross compiler
         uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          # HACK: Force a specific version since compiler hash is unstable upstream.
+          release: '15.3.Rel1'
       - run: arm-none-eabi-gcc --version
       - uses: actions/checkout@v7
       - name: Build
