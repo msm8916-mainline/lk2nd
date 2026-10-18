@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8926 0x1f43 0x00>;
+};
+
+&lk2nd {
+	model = "Huawei Ascend G6-L22";
+	compatible = "huawei,g6-l22";
+
+	//FIXME: lk2nd,dtb-files = "msm8926-huawei-g6-l22";
+};
