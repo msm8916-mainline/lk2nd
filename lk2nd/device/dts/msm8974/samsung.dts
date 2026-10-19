@@ -5,11 +5,37 @@
 
 / {
 	qcom,msm-id = <0x7E01FF01 7 0>,
+		      <0xC208FF01 1 0x10000>,
 		      <0xC208FF01 10 0x10000>,
 		      <0xC208FF01 14 0x10000>;
 };
 
 &lk2nd {
+	/* rev 01 */
+
+	kltecanactive {
+	model = "Samsung Galaxy S5 Active (SM-G870x)";
+	compatible = "samsung,klteactivexx", "samsung,klte";
+	lk2nd,match-bootloader = "G870*";
+	lk2nd,dtb-files = "msm8974pro-samsung-klte";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		home {
+			lk2nd,code = <KEY_HOME>;
+			gpios = <&pmic 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+		down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&pmic 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+		up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&pmic 5 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+};
+
 	/* rev 07 */
 
 	hlte {
