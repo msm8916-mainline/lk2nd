@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <0x93 0x00 0xa5 0x00 0xa1 0x00 0xa2 0x00 0xa3 0x00 0xa4 0x00 0xa6 0x00>;
+	qcom,board-id = <122 0>;
+};
+
+&lk2nd {
+	model = "LG L70 Dual(w5ds)";
+	compatible = "lge,w5ds";
+
+	// FIXME: lk2nd,dtb-files = "...";
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		down {
+			lk2nd,code = <KEY_VOLUMEDOWN>;
+			gpios = <&tlmm 73 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+		up {
+			lk2nd,code = <KEY_VOLUMEUP>;
+			gpios = <&tlmm 72 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+};
