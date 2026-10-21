@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8992 0>;
+	qcom,board-id = <0x41 0x8000>,
+			<0x41 0x81a0>,
+			<0x41 0x81b0>,
+			<0x41 0x82a0>,
+			<0x41 0x82b0>,
+			<0x41 0x82d0>,
+			<0x41 0x83b0>;
+	qcom,pmic-id = <0x10009 0x1000a 0x00 0x00>;
+
+	/* bootloader modifies panel properties or dies */
+	soc {
+		qcom,mdss_mdp@fd900000 {
+			qcom,mdss_dsi_mot_inx_500_720p_video_v0 {
+				compatible = "qcom,mdss-dsi-panel";
+			};
+			
+			qcom,mdss_dsi_mot_inx_570_QHD_dualmipi0_cmd_v0 {
+				compatible = "qcom,mdss-dsi-panel";
+			};
+		};
+	};
+};
+
+&lk2nd {
+	model = "Moto X Pure Edition (XT1575)";
+	compatible = "motorola,clark";
+	lk2nd,dtb-files = "msm8992-motorola-clark";
+};
