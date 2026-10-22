@@ -88,6 +88,7 @@
 - Lenovo Tab 10 (TB-X103F)
 - Mobvoi TicWatch Pro 2018 (catfish - WF12096)
 - Mobvoi TicWatch Pro 2020 (catfish_ext - WF12106)
+- Mobvoi TicWatch Pro 4G/LTE (catshark - WF11026V)
 - Nokia 6300 4G
 - Nokia 8000 4G
 - Nokia 8110 4G

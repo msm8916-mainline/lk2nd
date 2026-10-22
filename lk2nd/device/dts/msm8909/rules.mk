@@ -12,9 +12,11 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8909-zte-sapphire.dtb \
 
 ADTBS += \
-	$(LOCAL_DIR)/apq8009w-wtp.dtb \
 	$(LOCAL_DIR)/apq8009-qrd.dtb \
+	$(LOCAL_DIR)/apq8009w-1gb-wtp.dtb \
+	$(LOCAL_DIR)/apq8009w-512mb-wtp.dtb \
 	$(LOCAL_DIR)/msm8909-1gb-qrd-skua.dtb \
 	$(LOCAL_DIR)/msm8909-orbic-rc2200l.dtb \
 	$(LOCAL_DIR)/msm8909-pm8916-mtp.dtb \
+	$(LOCAL_DIR)/msm8909w-1gb-wtp.dtb \
 
