@@ -86,6 +86,7 @@
 - Lenovo Yoga Tab 3 8 LTE / WIFI
 - Lenovo Yoga Tab 3 10 LTE / WIFI
 - Lenovo Tab 10 (TB-X103F)
+- Mobvoi TicWatch Pro 4G/LTE (catshark - WF11026V)
 - Mobvoi TicWatch Pro 2018 (catfish - WF12096)
 - Mobvoi TicWatch Pro 2020 (catfish_ext - WF12106)
 - Nokia 6300 4G
