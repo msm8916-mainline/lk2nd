@@ -371,7 +371,8 @@ ifeq ($(PLATFORM),mdm9x25)
 			$(LOCAL_DIR)/dev_tree.o \
 			$(LOCAL_DIR)/clock.o \
 			$(LOCAL_DIR)/clock_pll.o \
-			$(LOCAL_DIR)/clock_lib2.o
+			$(LOCAL_DIR)/clock_lib2.o \
+			$(LOCAL_DIR)/regulator.o
 endif
 
 ifeq ($(PLATFORM),mdm9x35)

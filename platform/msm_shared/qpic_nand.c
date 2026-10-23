@@ -71,6 +71,7 @@ static uint8_t* rdwr_buf;
 
 static struct flash_id supported_flash[] = {
 	/* Flash ID  Flash ID2 ID Mask     ID Mask2  Density(MB)    Wid Pgsz    Blksz              oobsz   8-bit ECCf */
+	{0x1590aa2c, 0,		   0xFFFFFFFF, 0x0,		 (256 << 20),   0,  2048,   (2048 << 6),       0x40,   0},
 	{0x1590AC2C, 0x56,     0xFFFFFFFF, 0xFF,     0x20000000,    0,  2048,   0x00020000,        0x40,   0},
 	{0x1590AC2C, 0x57,     0xFFFFFFFF, 0xFF,     0x20000000,    0,  2048,   0x00020000,        0x40,   1},
 	{0x1590AA2C, 0x06,     0xFFFFFFFF, 0x0,      0x10000000,    0,  2048,   0x00020000,        0xE0,   0},
@@ -1268,7 +1269,7 @@ qpic_nand_non_onfi_probe(struct flash_info *flash)
 	qpic_nand_fetch_id(flash);
 
 	/* Check if we support the device */
-	for (index = 0; index < (ARRAY_SIZE(supported_flash)); index++)
+	for (index = 1; index < (ARRAY_SIZE(supported_flash)); index++)
 	{
 		if (((flash->id & supported_flash[index].mask) ==
 		    (supported_flash[index].flash_id & (supported_flash[index].mask))) &&
@@ -1335,12 +1336,23 @@ void
 qpic_nand_init(struct qpic_nand_init_config *config)
 {
 	uint32_t i;
+	int nand_ret;
 
 	nand_base = config->nand_base;
 
 	qpic_bam_init(config);
 
-	qpic_nand_non_onfi_probe(&flash);
+	/* Do an ONFI probe. */
+	nand_ret = qpic_nand_onfi_probe(&flash);
+
+	if (nand_ret == NANDC_RESULT_DEV_NOT_SUPPORTED)
+	{
+		/* Not an ONFI Device.
+		 * Check if it is one of the devices we support.
+		 */
+		 qpic_nand_non_onfi_probe(&flash);
+
+	}
 
 	/* Save the RAW and read/write configs */
 	qpic_nand_save_config(&flash);
