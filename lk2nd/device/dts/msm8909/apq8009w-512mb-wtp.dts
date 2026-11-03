@@ -4,15 +4,14 @@
 #include <lk2nd.dtsi>
 
 / {
-	model = "Qualcomm APQ8009W"; /* Required by the oem bootloader. */
+	model = "Qualcomm APQ8009w (512MB)"; /* Required by the oem bootloader. */
 	qcom,msm-id = <QCOM_ID_APQ8009W 0>;
-	qcom,board-id = <QCOM_BOARD_ID_MTP 0x5>,
-			<QCOM_BOARD_ID_MTP 0x105>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x5>;
 };
 
 &lk2nd {
 	mobvoi-catfish {
-		model = "Mobvoi TicWatch Pro";
+		model = "Mobvoi TicWatch Pro 2018 (catfish - WF12096)";
 		compatible = "mobvoi,catfish";
 
 		// FIXME: lk2nd,dtb-files = "apq8009w-mobvoi-catfish";

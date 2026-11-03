@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton32.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	model = "Qualcomm MSM8909w (1GB)"; /* Required by the oem bootloader. */
+	qcom,msm-id = <QCOM_ID_MSM8909W 0>;
+	qcom,board-id = <QCOM_BOARD_ID_MTP 0x5>;
+};
+
+&lk2nd {
+	mobvoi-catshark {
+		model = "Mobvoi TicWatch Pro 4G/LTE (catshark - WF11026V)";
+		compatible = "mobvoi,catshark";
+
+		// FIXME: lk2nd,dtb-files = "msm8909w-mobvoi-catshark";
+
+		lk2nd,match-panel;
+
+		panel {
+			compatible = "mobvoi,catshark-panel", "lk2nd,panel";
+
+			qcom,mdss_dsi_rm69080_wqvga_cmd {
+				compatible = "mobvoi,catshark-rm69080";
+			};
+		};
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			volume-down {
+				gpios = <&tlmm 98 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+				lk2nd,code = <KEY_VOLUMEDOWN>;
+			};
+		};
+	};
+};
