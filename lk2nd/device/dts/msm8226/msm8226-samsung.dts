@@ -6,7 +6,10 @@
 / {
 	qcom,msm-id = <0x9E08FF01 1 0x20000>,
 		      <0x9E08FF01 7 0x20000>,
-		      <QCOM_ID_MSM8226 QCOM_BOARD_ID_MTP 0x20007>;
+		      <QCOM_ID_MSM8226 QCOM_BOARD_ID_MTP 0x20007>,
+		      <0x9e00ff01 0x04 0x20000>,
+		      <0x9e08ff01 0x04 0x20000>,
+		      <0xdd08ff01 0x04 0x20000>;
 };
 
 &lk2nd {
@@ -107,4 +110,27 @@
 			};
 		};
 	};
+s3ve3g {
+model = "Samsung Galaxy S III Neo (s3ve3g)";
+compatible = "samsung,s3ve3g";
+lk2nd,match-bootloader = "I9301*";
+
+lk2nd,dtb-files = "qcom-msm8226-samsung-s3ve3g";
+// it needs a fallback to boot properly
+gpio-keys {
+compatible = "gpio-keys";
+home {
+lk2nd,code = <KEY_HOME>;
+gpios = <&tlmm 108 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+};
+down {
+lk2nd,code = <KEY_VOLUMEDOWN>;
+gpios = <&tlmm 107 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+};
+up {
+lk2nd,code = <KEY_VOLUMEUP>;
+gpios = <&tlmm 106 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+};
+};
+};
 };
