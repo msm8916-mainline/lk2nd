@@ -124,4 +124,26 @@
 #define USB_HS_SYSTEM_CMD_RCGR               (CLK_CTL_BASE + 0x490)
 #define USB_HS_SYSTEM_CFG_RCGR               (CLK_CTL_BASE + 0x494)
 
+/* SDCC2 */
+#define SDCC2_BCR                   (CLK_CTL_BASE + 0x500) /* block reset */
+#define SDCC2_APPS_CBCR             (CLK_CTL_BASE + 0x504) /* branch control */
+#define SDCC2_AHB_CBCR              (CLK_CTL_BASE + 0x508)
+#define SDCC2_INACTIVITY_TIMER_CBCR (CLK_CTL_BASE + 0x50C)
+#define SDCC2_CMD_RCGR              (CLK_CTL_BASE + 0x510) /* cmd */
+#define SDCC2_CFG_RCGR              (CLK_CTL_BASE + 0x514) /* cfg */
+#define SDCC2_M                     (CLK_CTL_BASE + 0x518) /* m */
+#define SDCC2_N                     (CLK_CTL_BASE + 0x51C) /* n */
+#define SDCC2_D                     (CLK_CTL_BASE + 0x520) /* d */
+
+/* SDCC3 */
+#define SDCC3_BCR                   (CLK_CTL_BASE + 0x540) /* block reset */
+#define SDCC3_APPS_CBCR             (CLK_CTL_BASE + 0x544) /* branch control */
+#define SDCC3_AHB_CBCR              (CLK_CTL_BASE + 0x548)
+#define SDCC3_INACTIVITY_TIMER_CBCR (CLK_CTL_BASE + 0x54C)
+#define SDCC3_CMD_RCGR              (CLK_CTL_BASE + 0x550) /* cmd */
+#define SDCC3_CFG_RCGR              (CLK_CTL_BASE + 0x554) /* cfg */
+#define SDCC3_M                     (CLK_CTL_BASE + 0x558) /* m */
+#define SDCC3_N                     (CLK_CTL_BASE + 0x55C) /* n */
+#define SDCC3_D                     (CLK_CTL_BASE + 0x560) /* d */
+
 #endif

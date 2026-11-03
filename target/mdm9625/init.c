@@ -29,6 +29,8 @@
 #include <debug.h>
 #include <board.h>
 #include <platform.h>
+#include <uart_dm.h>
+#include <spmi.h>
 #include <target.h>
 #include <smem.h>
 #include <baseband.h>
