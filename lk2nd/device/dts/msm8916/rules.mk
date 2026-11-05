@@ -31,6 +31,7 @@ QCDTBS += \
 	$(LOCAL_DIR)/msm8916-qrd-8.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-9.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-skui.dtb \
+	$(LOCAL_DIR)/msm8916-qrd-skul.dtb \
 	$(LOCAL_DIR)/msm8916-qrd-skut1.dtb \
 	$(LOCAL_DIR)/msm8916-samsung.dtb \
 	$(LOCAL_DIR)/msm8916-vivo-cdp-1.dtb \
