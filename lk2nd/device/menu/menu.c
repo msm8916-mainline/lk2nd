@@ -20,6 +20,9 @@
 
 // Defined in app/aboot/aboot.c
 extern void cmd_continue(const char *arg, void *data, unsigned sz);
+#if WITH_LK2ND_BOOT
+extern void cmd_continue_skip_lk2ndboot(const char *arg, void *data, unsigned sz);
+#endif
 
 #define FONT_WIDTH	(5+1)
 #define FONT_HEIGHT	12
@@ -122,6 +125,9 @@ static uint16_t wait_key(void)
 #define str(s) #s
 
 static void opt_continue(void)   { cmd_continue(NULL, NULL, 0); }
+#ifdef WITH_LK2ND_BOOT
+static void opt_continue_skip_lk2nd(void) { cmd_continue_skip_lk2ndboot(NULL, NULL, 0); }
+#endif
 static void opt_reboot(void)     { reboot_device(0); }
 static void opt_recovery(void)
 {
@@ -141,6 +147,9 @@ static struct {
 } menu_options[] = {
 	{ "  Reboot  ", GREEN,  opt_reboot },
 	{ " Continue ", WHITE,  opt_continue },
+#ifdef WITH_LK2ND_BOOT
+	{ "Skip lk2nd", WHITE,  opt_continue_skip_lk2nd },
+#endif
 	{ " Recovery ", ORANGE, opt_recovery },
 	{ "Bootloader", ORANGE, opt_bootloader },
 	{ "    EDL   ", RED,    opt_edl },
