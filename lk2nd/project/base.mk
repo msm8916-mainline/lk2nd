@@ -51,6 +51,12 @@ ifeq ($(DEBUG_FBCON), 1)
 	DEFINES += WITH_DEBUG_FBCON=1
 endif
 
+# Select the first DTB as a fallback if it doesn't want to boot, disable with "LK2ND_DTB_FALLBACK ?= 0"
+LK2ND_DTB_FALLBACK ?= 1
+ifeq ($(LK2ND_DTB_FALLBACK), 1)
+  DEFINES += LK2ND_DTB_FALLBACK=1
+endif
+
 ifeq ($(LK2ND_FORCE_FASTBOOT), 1)
 	DEFINES += LK2ND_FORCE_FASTBOOT=1
 endif
