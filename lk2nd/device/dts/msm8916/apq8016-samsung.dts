@@ -88,4 +88,27 @@
 			};
 		};
 	};
+
+	/* rev 7 */
+
+	gt5note10wifi {
+		model = "Samsung Galaxy Tab A 9.7 2015 (WiFi, SM-P550)";
+		compatible = "samsung,gt5note10wifi", "samsung,gt510wifi", "samsung,gt510";
+		lk2nd,match-bootloader = "P550*";
+
+		lk2nd,dtb-files = "msm8916-samsung-gt510";
+
+		qcom,msm-id = <QCOM_ID_APQ8016 0>;
+		qcom,board-id = <0xF708FF01 7>;
+
+		gpio-keys {
+			compatible = "gpio-keys";
+
+			home {
+				lk2nd,code = <KEY_HOME>;
+				gpios = <&tlmm 109 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			};
+		};
+
+	};
 };
