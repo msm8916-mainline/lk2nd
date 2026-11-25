@@ -4,7 +4,8 @@
 #include <lk2nd.dtsi>
 
 / {
-	qcom,msm-id = <QCOM_ID_MSM8996 0x10000>;
+	model = "LG V20";	
+	qcom,msm-id = <QCOM_ID_MSM8996 0x30001>;
 	qcom,board-id = <0xc08 0x00>;
 	qcom,pmic-id = <0x20009 0x10013 0x00 0x00>;
 };
