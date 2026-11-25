@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include <skeleton64.dtsi>
+#include <lk2nd.dtsi>
+
+/ {
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <QCOM_BOARD_ID(QRD, 1, 1) 16>;
+};
+
+&lk2nd {
+	model = "CMCC A1 (M623C) (Wingtech WT86621)";
+	compatible = "wingtech,wt86621";
+
+	lk2nd,dtb-files = "msm8916-wingtech-wt86621";
+
+	panel {
+		compatible = "wingtech,wt86621-panel", "lk2nd,panel";
+
+		qcom,mdss_dsi_ili9881c_dj_720p_video {
+			compatible = "wingtech,ili9881c-dj";
+		};
+		qcom,mdss_dsi_ili9881c_dj_boe_720p_video {
+			compatible = "wingtech,ili9881c-dj-boe";
+		};
+		qcom,mdss_dsi_ili9881c_dj_cmi_720p_video {
+			compatible = "wingtech,ili9881c-dj-cmi";
+		};
+	};
+};

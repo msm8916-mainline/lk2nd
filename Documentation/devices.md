@@ -13,6 +13,7 @@
 - Asus ZenPad 8.0 (Z380KL) - P024
 - BQ Aquaris M5 - piccolo
 - BQ Aquaris X5 - paella, picmt
+- CMCC A1 (M623C) - wt86621
 - DragonBoard 410c - apq8016-sbc
 - EE Harrier Mini - harrier-mini
 - GPLUS FL8005A
