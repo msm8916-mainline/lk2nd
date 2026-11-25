@@ -159,6 +159,23 @@ struct dt_entry_v2
 	uint32_t size;
 };
 
+/*
+ * Some OPPO devices ship a QCDT table that declares version 2 but uses
+ * seven-word entries: their dtbTool inserts the OPPO project number, which
+ * is the third cell of the vendor qcom,board-id, between soc_rev and offset.
+ * Standard v2 has no field for it.
+ */
+struct dt_entry_v2_oppo
+{
+	uint32_t platform_id;
+	uint32_t variant_id;
+	uint32_t board_hw_subtype;
+	uint32_t soc_rev;
+	uint32_t oppo_project_id;
+	uint32_t offset;
+	uint32_t size;
+};
+
 struct dt_entry
 {
 	uint32_t platform_id;
