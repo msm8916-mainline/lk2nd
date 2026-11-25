@@ -1860,6 +1860,10 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 	struct dt_entry_node *dt_node_tmp1 = NULL;
 	struct dt_entry_node *dt_node_tmp2 = NULL;
 	uint32_t found = 0;
+#if LK2ND_DTB_FALLBACK
+	struct dt_entry first_dt_entry;
+	int have_first = 0;
+#endif
 
 	if (!dt_entry_info) {
 		dprintf(CRITICAL, "ERROR: Bad parameter passed to %s \n",
@@ -1954,10 +1958,22 @@ int dev_tree_get_entry_info(struct dt_table *table, struct dt_entry *dt_entry_in
 		/* DTBs must match the platform_id, platform_hw_id, platform_subtype and DDR size.
 		* The satisfactory DTBs are stored in dt_entry_queue
 		*/
+		#if LK2ND_DTB_FALLBACK
+		if (!have_first) {
+			first_dt_entry = *cur_dt_entry;
+			have_first = 1;
+		}
+#endif
 		platform_dt_absolute_match(cur_dt_entry, dt_entry_queue);
 
 	}
 	best_match_dt_entry = platform_dt_match_best(dt_entry_queue);
+#if LK2ND_DTB_FALLBACK
+	if (!best_match_dt_entry && have_first) {
+		dprintf(INFO, "No DTB matched, falling back to first entry(this is necessary for my S3 Neo, sorry if it breaks any other device's boot.)\n");
+		best_match_dt_entry = &first_dt_entry;
+	}
+#endif
 	if (best_match_dt_entry) {
 		*dt_entry_info = *best_match_dt_entry;
 		found = 1;
